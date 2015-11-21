@@ -5,7 +5,7 @@ package assistant.connection;
  * 
  * @author costi.dumitrescu
  */
-public interface ConnectionHandler {
+public interface Handler {
 
 	/**
 	 * 'Login' Message Type - specific behavior.

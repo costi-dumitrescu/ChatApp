@@ -15,7 +15,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import assistant.connection.Connection;
-import assistant.connection.ConnectionHandler;
+import assistant.connection.Handler;
 import assistant.connection.ListenerThread;
 
 /**
@@ -33,7 +33,7 @@ public class MessageHandler {
 	/**
 	 * Connection handler.
 	 */
-	private ConnectionHandler connectionHandler;
+	private Handler connectionHandler;
 	
 	/**
 	 * Document Builder. Defines the API to obtain DOM Document instances from

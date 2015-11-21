@@ -8,11 +8,11 @@ import java.net.Socket;
 import org.w3c.dom.Document;
 
 /**
- * Each newly came client is handled by a {@link ListenerThread}. 
+ * Each newly came client is handled by a {@link ListenerThread}.
  * 
  * @author costi.dumitrescu
  */
-public abstract class ListenerThread extends Thread {
+public abstract class ListenerThread extends Thread implements Handler {
 
 	/**
 	 * The socket where to listen/talk
