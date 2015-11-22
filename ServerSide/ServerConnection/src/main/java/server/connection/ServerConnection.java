@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.apache.log4j.Logger;
-
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
 
@@ -15,11 +13,6 @@ import assistant.connection.ConnectionInfoPack;
  * @author costi.dumitrescu
  */
 public class ServerConnection extends Connection {
-
-	/**
-	 * Logger for logging
-	 */
-	final static Logger logger = Logger.getLogger(ServerConnection.class);
 
 	/**
 	 * The socket used by the server. A server socket waits for requests to come
@@ -78,7 +71,7 @@ public class ServerConnection extends Connection {
 			} catch (IOException e) {
 				
 				// Failed.
-				logger.error("Error occured when waiting for a connection" , e);
+				this.connectionInfoPack.getLoggable().logErrorMessage("Error occured when waiting for a connection : " + e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -100,15 +93,13 @@ public class ServerConnection extends Connection {
 				// Save it in the ArrayList.
 				ServerRoom.getInstance().addClient(client);
 
-				// TODO - Should this client be started in the addClient method from the room ???? 
-				
 				// Start the thread.
 				client.start();
 
 			} catch (IOException e) {
 
 				// Failed.
-				logger.error("Error occured when creating the streams or the socket is not connected " , e);
+				this.connectionInfoPack.getLoggable().logErrorMessage("Error occured when creating the streams or the socket is not connected " + e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -148,7 +139,7 @@ public class ServerConnection extends Connection {
 	 */
 	private void establishConnection() throws IOException {
 		this.serverSocket = new ServerSocket(this.connectionInfoPack.getPortNumber());
-		logger.info("Server waiting for Clients on port " + this.connectionInfoPack.getPortNumber());
+		this.connectionInfoPack.getLoggable().logMessage("Server waiting for Clients on port " + this.connectionInfoPack.getPortNumber());
 	}
 
 	/**
@@ -161,7 +152,7 @@ public class ServerConnection extends Connection {
 	 */
 	private void stopServer() throws IOException, InterruptedException {
 		// bye
-		logger.info("Server will shut down.");
+		this.connectionInfoPack.getLoggable().logMessage("Server will shut down.");
 		
 		/*
 		 * 

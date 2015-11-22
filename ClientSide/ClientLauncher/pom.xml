@@ -3,17 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>ChatApp</groupId>
-		<artifactId>ServerSide</artifactId>
+		<artifactId>ClientSide</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>Connection</artifactId>
-
-	<dependencies>
-		<dependency>
-			<groupId>ChatApp</groupId>
-			<artifactId>Assistant</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
-
+	<artifactId>ClientLauncher</artifactId>
 </project>

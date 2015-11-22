@@ -93,7 +93,6 @@ public abstract class HandlerThread extends Thread implements Handler {
 		// TODO - maybe to interrupt this thread instead of setting to false the isConnectionOpened variable.
 		// 		- it could be blocked in the read method, and won't release until it reads something there.
 				
-		
 		this.isConnectionOpened = false;
 	}
 	

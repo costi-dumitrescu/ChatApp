@@ -13,6 +13,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.apache.log4j.Logger;
+
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
 import assistant.view.View;
@@ -24,6 +26,11 @@ import assistant.view.View;
  */
 public class ServerView extends View {
 
+	/**
+	 * Logger for logging
+	 */
+	final static Logger logger = Logger.getLogger(ServerView.class);
+	
 	/**
 	 * Default serial version.
 	 */
@@ -152,7 +159,6 @@ public class ServerView extends View {
 				try {
 					ServerView.this.connection.start(ServerView.this.createTheInfoPack());
 				} catch (IOException | InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -178,7 +184,6 @@ public class ServerView extends View {
 				try {
 					ServerView.this.connection.stop();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -204,7 +209,11 @@ public class ServerView extends View {
 	 */
 	@Override 
 	public void logMessage(String message) {
-		// TODO
+		// #1 Use log4j
+		logger.warn(message);
+		
+		// #2 Use the text area.
+		this.logTextArea.append(message + "\n");
 	}
 
 	/**
@@ -212,6 +221,10 @@ public class ServerView extends View {
 	 */
 	@Override
 	public void logErrorMessage(String errorMessage) {
-		// TODO
+		// #1 Use log4j
+		logger.error(errorMessage);
+		
+		// #2 Use the text area.
+		this.logTextArea.append(errorMessage + "\n");
 	}
 }

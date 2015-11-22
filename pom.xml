@@ -10,11 +10,11 @@
 		<module>ServerSide</module>
 		<module>Assistant</module>
 	</modules>
-	
+
 	<properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 		<main.class>3.1.2.RELEASE</main.class>
 	</properties>
-	
+
 </project>

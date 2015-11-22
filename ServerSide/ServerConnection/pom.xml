@@ -3,14 +3,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>ChatApp</groupId>
-		<artifactId>ChatApp</artifactId>
+		<artifactId>ServerSide</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>ClientSide</artifactId>
-	<packaging>pom</packaging>
-	<modules>
-		<module>ClientView</module>
-		<module>ClientConnection</module>
-		<module>ClientLauncher</module>
-	</modules>
+	<artifactId>ServerConnection</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>ChatApp</groupId>
+			<artifactId>Assistant</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+
 </project>
