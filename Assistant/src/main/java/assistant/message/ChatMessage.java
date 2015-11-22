@@ -2,8 +2,10 @@ package assistant.message;
 
 import java.io.Serializable;
 
+import org.w3c.dom.Document;
+
 /**
- * Chat message.
+ * Chat message. A wrapper for an XML DOM {@link Document}.
  * 
  * @author costi.dumitrescu
  */
@@ -15,41 +17,25 @@ public class ChatMessage implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The type of the message. One of 3 from above.
+	 * The {@link Document} message.
 	 */
-	private String type;
-
-	/**
-	 * The message.
-	 */
-	private String message;
+	private Document message;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param type    The type of the message.
-	 * @param message The message.
+	 * @param message The {@link Document} message.
 	 */
-	public ChatMessage(String type, String message) {
-		this.type = type;
+	public ChatMessage(Document message) {
 		this.message = message;
 	}
 
 	/**
-	 * Returns the type.
+	 * Returns the {@link Document} message.
 	 * 
-	 * @return the type.
+	 * @return the {@link Document} message.
 	 */
-	public String getType() {
-		return this.type;
-	}
-
-	/**
-	 * Returns the message.
-	 * 
-	 * @return the message.
-	 */
-	public String getMessage() {
+	public Document getMessage() {
 		return this.message;
 	}
 }

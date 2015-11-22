@@ -1,7 +1,7 @@
 package assistant.view;
 
 /**
- * Loggable interface to be passed to a connection for logging messages.
+ * {@link Loggable} interface to be passed to a connection for logging messages.
  * 
  * @author Costi.Dumitrescu
  *

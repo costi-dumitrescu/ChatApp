@@ -1,42 +1,33 @@
 package assistant.message;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import assistant.connection.Connection;
-import assistant.connection.Handler;
-import assistant.connection.ListenerThread;
+import assistant.handler.Handler;
 
 /**
- * Message Handler. Factory design pattern implementation.
+ * {@link MessageHandler}. Factory design pattern implementation.
  * 
  * @author costi.dumitrescu
  */
 public class MessageHandler {
 	
 	/**
-	 * Connection instance.
+	 * {@link MessageHandler} Instance. Singleton purpose.
 	 */
 	private static MessageHandler messageHandler; 
 	
 	/**
-	 * Connection handler.
-	 */
-	private Handler connectionHandler;
-	
-	/**
-	 * Document Builder. Defines the API to obtain DOM Document instances from
+	 * {@link DocumentBuilder}. Defines the API to obtain DOM {@link Document} instances from
 	 * an XML document.
 	 */
 	private DocumentBuilder documentBuilder;
@@ -48,12 +39,10 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * Create/Return MessageHandler instance.
+	 * Returns the single reference for the {@link MessageHandler} instance.
+	 * Singleton purpose.
 	 * 
-	 * @return MessageHandler instance.
-	 * 
-	 * @throws ParserConfigurationException
-	 *             If it fails creating a document builder.
+	 * @return The single reference for the {@link MessageHandler} instance.
 	 */
 	public synchronized static MessageHandler getInstance() {
 		if (messageHandler == null) {
@@ -63,93 +52,98 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * Creates a chat message instance according to the type.
+	 * Create a {@link ChatMessage} wrapper for a {@link Document}.
+	 *
+	 * {@link Document} example : 
+	 *  
+	 *	<ChatMessage>
+	 *		<MessageType>
+	 *			messageType
+	 *		</MessageType>
+	 *		<User>
+	 *			user
+	 *		</User>
+	 *		<Message>
+	 *			message
+	 *		</Message>
+	 *	</ChatMessage>
 	 * 
-	 * @param messageType 	The type of the new chat message instance.
-	 * @param username 		The user-name.
-	 * @param message 		The actual message 
-	 * @return 				The new message.
+	 * @param messageType 					The type of the new {@link ChatMessage}.
+	 * @param user	 						The user.
+	 * @param message 						The actual message.
+	 * 
+	 * @return 								The new {@link ChatMessage}.
+	 * 
+	 * @throws ParserConfigurationException If a DocumentBuilder cannot be created which satisfies the configuration requested.
 	 */
-	public Document createMessage(String messageType, String username, String message) {
+	public ChatMessage createMessage(String messageType, String user, String message) throws ParserConfigurationException {
 	
 		// If null, create one.
 		if (this.documentBuilder == null) {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			try {
-				this.documentBuilder = factory.newDocumentBuilder();
-			} catch (ParserConfigurationException e) {
-				// Not much we can do!
-				e.printStackTrace();
-			}
+			this.documentBuilder = factory.newDocumentBuilder();
 		}
 	
-		// Holds the XML message.
-		StringBuilder xml = new StringBuilder();
+		// The {@link Document}
+		Document document = this.documentBuilder.newDocument();
 		
-		// The XML message content. 
-		xml.append("<?xml version='1.0'?>");
-		xml.append("<ChatMessage>");
-		xml.append("<MessageType>");
-		xml.append(messageType);
-		xml.append("</MessageType>");
-		xml.append("<Username>");
-		xml.append(username);
-		xml.append("</Username>");
-		xml.append("<Message>");
-		xml.append(message);
-		xml.append("</Message>");
-		xml.append("</ChatMessage>");
+		// The 'ChatMessage' Root {@link Element}
+		Element chatMessageRootElement = document.createElement("ChatMessage");
+		document.appendChild(chatMessageRootElement);
+
+		// The 'MessageType' {@link Element}
+		Element messageTypeElement = document.createElement("MessageType");
+		messageTypeElement.appendChild(document.createTextNode(messageType));
+		chatMessageRootElement.appendChild(messageTypeElement);
+
+		// The 'User' {@link Element}
+		Element userElement = document.createElement("User");
+		userElement.appendChild(document.createTextNode(user));
+		chatMessageRootElement.appendChild(userElement);
+
+		// The 'Message' {@link Element} 
+		Element messageElement = document.createElement("Message");
+		messageElement.appendChild(document.createTextNode(message));
+		chatMessageRootElement.appendChild(messageElement);
+
+		// The actual {@link ChatMessage}
+		ChatMessage chatMessage = new ChatMessage(document);
 		
-		// A ByteArrayInputStream contains an internal buffer that contains
-		// bytes that may be read from the stream. An internal counter keeps
-		// track of the next byte to be supplied by the read method.
-		ByteArrayInputStream input = null;
-		try {
-			input = new ByteArrayInputStream(xml.toString().getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			// Not much we can do!
-			e.printStackTrace();
-		}
-	
-		// The Document interface represents the entire HTML or XML document.
-		Document document = null;
-		try {
-			document = this.documentBuilder.parse(input);
-		} catch (SAXException e) {
-			// Not much we can do!
-			e.printStackTrace();
-		} catch (IOException e) {
-			// Not much we can do!
-			e.printStackTrace();
-		}
-		
-		return document;
+		return chatMessage;
 	}
 	
 	/**
-	 * Parses the document and notifies the connection about updates.
+	 * Parses the {@link ChatMessage} and notifies the handler.
 	 * 
-	 * @param listenerThread The current listener thread.
-	 * @param xmlMessage     The XML message to be parsed.
+	 * @param handler 	 					The handler thread.
+	 * @param chatMessage 					The XML wrapper {@link ChatMessage} to be parsed.
+	 *
+	 * @throws IOException 					Any exception thrown by the underlying OutputStream. 
+	 * @throws ParserConfigurationException If a DocumentBuilder cannot be created which satisfies the configuration requested.
+	 * @throws DOMException 				DOMSTRING_SIZE_ERR: Raised when it would return more characters than fit in a DOMString 
+	 * 										variable on the implementation platform.
 	 */
-	public void handleMessage(ListenerThread listenerThread, Document xmlMessage) {
+	public void handleMessage(Handler handler, ChatMessage chatMessage) throws DOMException, IOException, ParserConfigurationException {
 			
 		// For safety.
-		if(xmlMessage != null) {
+		if(handler != null && chatMessage != null) {
 			
-			// The message type node.
+			// {@link Document} XML message.
+			Document xmlMessage = chatMessage.getMessage();
+			
+			// {@link Node} type.
 			Node messageType = null;
 			
-			// The name of the user.
-			Node username = null;
+			// {@link Node} user.
+			Node user = null;
 			
-			// The message.
+			// {@link Node} message.
 			Node message = null;
 			
-			// Root element of the document.
+			// {@link Element} Root element of the document.
 			Element root = xmlMessage.getDocumentElement();
 			
-			// All MessageType tags within root element. 
+			// {@link NodeList} All MessageType tags within root element. 
 			NodeList messageTypeList = root.getElementsByTagName("MessageType");
 			
 			// Extra safety,
@@ -157,12 +151,12 @@ public class MessageHandler {
 				messageType = messageTypeList.item(0);
 			}
 
-			// All Username tags within root element. 
-			NodeList usernameList = root.getElementsByTagName("Username");
+			// All user tags within root element. 
+			NodeList userList = root.getElementsByTagName("User");
 			
 			// Extra safety,
-			if(usernameList.getLength() > 0) {
-				username = usernameList.item(0);
+			if(userList.getLength() > 0) {
+				user = userList.item(0);
 			}
 
 			// All Message tags within root element. 
@@ -176,48 +170,39 @@ public class MessageHandler {
 			// Different behaviors for each message type.
 			switch (messageType.getTextContent()) {
 			
-			// "User logged in."
-			case MessageType.LOGIN:
-				// ServerConnection - Should broadcast the message to all others, to say 'user : logged in'
-				//					- Should send a WHOISIN message to update the list of users for each client.
-				// ClientConnection - Should log the message on the screen/or somehow the current should be announced that someone has logged in.
-				this.connectionHandler.handleLogin(listenerThread, username.getTextContent(), message.getTextContent());
-				break;
-
-			// "User asked who is in." 
-			case MessageType.WHOISIN:
-				// ServerConnection - Should loop through the list of clients and send them all to the current asking client.
-				// ClientConnection - First clear the users table and recreate it.
-				this.connectionHandler.handleWhoisin(listenerThread, username.getTextContent(), message.getTextContent());
-				break;
-
-			// Message.
-			case MessageType.MESSAGE:
-				// ServerConnection - Broadcast the message to all clients.
-				// ClientConnection - Just print/log it.
-				this.connectionHandler.handleMessage(listenerThread, username.getTextContent(), message.getTextContent());
-				break;
-
-			// "User logged out."
-			case MessageType.LOGOUT:
-				// ServerConnection - Should broadcast the message to all others, to say 'user : logged out'
-				//					- Should send a WHOISIN message to update the list of users for each client.
-				// ClientConnection - Change the MainView with the LoginView.
-				this.connectionHandler.handleLogout(listenerThread, username.getTextContent(), message.getTextContent());
-				break;
-
-			default:
-				break;
+				// "User logged in."
+				case MessageType.LOGIN:
+					// ServerConnection - Broadcast the message to all others, to say 'user : logged in'
+					//					- Send a WHOISIN message to all clients, to update the list of users with this new one.
+					// ClientConnection - Should log the message on the screen/or somehow the current should be announced that someone has logged in.
+					handler.handleLogin(user.getTextContent(), message.getTextContent());
+					break;
+	
+				// "User asked who is in." 
+				case MessageType.WHOISIN:
+					// ServerConnection - Should send the list of clients to the current asking client.
+					// ClientConnection - First clear the users table and recreate it according with the new one.
+					handler.handleWhoIsIn(user.getTextContent(), message.getTextContent());
+					break;
+	
+				// 'User sent a message for the room.'
+				case MessageType.MESSAGE:
+					// ServerConnection - Broadcast the message to all clients.
+					// ClientConnection - Just print/log it.
+					handler.handleMessage(user.getTextContent(), message.getTextContent());
+					break;
+	
+				// "User logged out."
+				case MessageType.LOGOUT:
+					// ServerConnection - Should broadcast the message to all others, to say 'user : logged out'
+					//					- Should send a WHOISIN message to update the list of users for each client.
+					// ClientConnection - Change the MainView with the LoginView.
+					handler.handleLogout(user.getTextContent(), message.getTextContent());
+					break;
+	
+				default:
+					break;
 			}
 		}
-	}
-
-	/**
-	 * Sets the connection handler.
-	 * 
-	 * @param connectionHandler The connection handler.
-	 */
-	public void setConnectionHandler(Connection connectionHandler) {
-		this.connectionHandler = connectionHandler;
 	}
 }
