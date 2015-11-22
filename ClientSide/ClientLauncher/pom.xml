@@ -7,4 +7,18 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>ClientLauncher</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>ChatApp</groupId>
+			<artifactId>ClientView</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>ChatApp</groupId>
+			<artifactId>ClientConnection</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+
 </project>
