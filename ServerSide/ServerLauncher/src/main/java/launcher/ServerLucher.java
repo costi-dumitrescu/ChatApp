@@ -22,7 +22,7 @@ public class ServerLucher {
 
 		/*
 		 * 
-		 * Lunch the server.
+		 * Launch the server.
 		 * 
 		 */
 		

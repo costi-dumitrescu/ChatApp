@@ -8,7 +8,7 @@ import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
 
 /**
- * Server side connection.
+ * {@link ServerConnection}
  * 
  * @author costi.dumitrescu
  */
@@ -71,7 +71,7 @@ public class ServerConnection extends Connection {
 			} catch (IOException e) {
 				
 				// Failed.
-				this.connectionInfoPack.getLoggable().logErrorMessage("Error occured when waiting for a connection : " + e);
+				this.connectionInfoPack.getLoggable().logMessage("Error occured when waiting for a connection : " + e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -99,7 +99,7 @@ public class ServerConnection extends Connection {
 			} catch (IOException e) {
 
 				// Failed.
-				this.connectionInfoPack.getLoggable().logErrorMessage("Error occured when creating the streams or the socket is not connected " + e);
+				this.connectionInfoPack.getLoggable().logMessage("Error occured when creating the streams or the socket is not connected " + e);
 
 				// Let this one down but keep on with others.
 				continue;

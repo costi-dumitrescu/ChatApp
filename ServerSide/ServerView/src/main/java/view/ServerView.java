@@ -20,7 +20,7 @@ import assistant.connection.ConnectionInfoPack;
 import assistant.view.View;
 
 /**
- * Server view.
+ * {@link ServerView}.
  * 
  * @author costi.dumitrescu
  */
@@ -214,17 +214,5 @@ public class ServerView extends View {
 		
 		// #2 Use the text area.
 		this.logTextArea.append(message + "\n");
-	}
-
-	/**
-	 * @see assistant.view.Loggable.logMessage(String)
-	 */
-	@Override
-	public void logErrorMessage(String errorMessage) {
-		// #1 Use log4j
-		logger.error(errorMessage);
-		
-		// #2 Use the text area.
-		this.logTextArea.append(errorMessage + "\n");
 	}
 }

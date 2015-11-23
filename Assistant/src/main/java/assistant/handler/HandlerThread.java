@@ -41,8 +41,6 @@ public abstract class HandlerThread extends Thread implements Handler {
 	protected Loggable loggable;
 	
 	/**
-	 * TODO - this should be only on the client handler thread
-	 * 
 	 * The client associated with this listener.
 	 */
 	protected String user;
@@ -84,27 +82,19 @@ public abstract class HandlerThread extends Thread implements Handler {
 	public String getUser() {
 		return user;
 	};
-	
+
 	/**
 	 * Stop this handler thread.
+	 * 
+	 * @throws IOException If an error has occurred while closing the connections.
 	 */
-	public void stopThread() {
+	public void stopClient() throws IOException {
 		
 		// TODO - maybe to interrupt this thread instead of setting to false the isConnectionOpened variable.
 		// 		- it could be blocked in the read method, and won't release until it reads something there.
 				
 		this.isConnectionOpened = false;
-	}
-	
-	/**
-	 * Send a message to the client.
-	 * 
-	 * @param message      The message to be sent.
-	 * 
-	 * @throws IOException Any exception thrown by the underlying OutputStream. 
-	 */
-	public void writeMessage(ChatMessage message) throws IOException {
-		this.objectOutputStream.writeObject(message);
+		this.closeConnections();
 	}
 	
 	/**
@@ -129,5 +119,17 @@ public abstract class HandlerThread extends Thread implements Handler {
 		if (this.socket != null) {
 			this.socket.close();
 		}
+	}
+	
+	/**
+	 * Send message to the server.
+	 * This method should be called by a 3rd thread, which only handles the sending.
+	 * This handler thread should only listen signals.
+	 * 
+	 * @param message      The message to be sent.
+	 * @throws IOException Any exception thrown by the underlying OutputStream. 
+	 */
+	public void send(ChatMessage message) throws IOException {
+		this.objectOutputStream.writeObject(message);
 	}
 }

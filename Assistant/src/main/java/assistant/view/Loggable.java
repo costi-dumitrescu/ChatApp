@@ -14,11 +14,4 @@ public interface Loggable {
 	 * @param message The message to be logged.
 	 */
 	void logMessage(String message);
-	
-	/**
-	 * Log an error message, either as an error or a simply message.
-	 * 
-	 * @param errorMessage The error message to be logged.
-	 */
-	void logErrorMessage(String errorMessage);
 }

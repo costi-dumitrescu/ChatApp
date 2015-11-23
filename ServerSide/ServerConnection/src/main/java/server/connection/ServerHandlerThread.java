@@ -21,7 +21,8 @@ public class ServerHandlerThread extends HandlerThread {
 	/**
 	 * Constructor
 	 * 
-	 * @param socket The socket to read and write to.
+	 * @param socket   The socket to read and write to.
+	 * @param loggable The {@link Loggable} instance.
 	 */
 	public ServerHandlerThread(Socket socket, Loggable loggable) throws IOException {
 		// Delegate to super constructor.
@@ -34,25 +35,23 @@ public class ServerHandlerThread extends HandlerThread {
 	@Override
 	public void run() {
 		
-		// Loop until the condition is no longer met. 
-		while (ServerHandlerThread.this.isConnectionOpened) {
-			try {
-				ChatMessage message = (ChatMessage) objectInputStream.readObject();
+		// WORK HARD.
+		try {
+			// Loop until the condition is no longer met. 
+			while (ServerHandlerThread.this.isConnectionOpened) {
+				ChatMessage message = (ChatMessage) this.objectInputStream.readObject();
 				// Ask the {@link MessageHandler} to handle the message.
 				MessageHandler.getInstance().handleMessage(this, message);
-			} catch (IOException | ClassNotFoundException | DOMException | ParserConfigurationException e) {
-				// Log error message and remove this client from the room.
-				ServerHandlerThread.this.loggable.logErrorMessage("Exception in client thread : " + this.hashCode() + " - " + e + ". Client thread will be shuted");
-				break;
-			} 
-		}
-		
-		// The handler thread has terminated.
-		// It has to remove himself from the room of clients.
-		try {
-			ServerRoom.getInstance().removeClient(ServerHandlerThread.this);
-		} catch (IOException e) {
-			// Not much we can do.
+			}
+		} catch (DOMException | ClassNotFoundException | IOException | ParserConfigurationException e) {
+			ServerHandlerThread.this.loggable.logMessage("Exception in client thread : " + this.hashCode() + " - " + e);
+			// The handler thread has terminated.
+			// It has to remove himself from the room of clients.
+			try {
+				ServerRoom.getInstance().removeClient(ServerHandlerThread.this);
+			} catch (IOException ioe) {
+				ServerHandlerThread.this.loggable.logMessage("Exception removing client : " + this.hashCode() + " - " + ioe);
+			}
 		}
 	}
 
@@ -131,7 +130,7 @@ public class ServerHandlerThread extends HandlerThread {
 		this.loggable.logMessage(user + " " + message);
 
 		// Stop this handler thread.
-		this.stopThread();
+		this.stopClient();
 
 		/*
 		 * 

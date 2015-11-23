@@ -27,11 +27,9 @@ public abstract class View extends JPanel implements Loggable {
 	 * @param connection The connection.
 	 */
 	public View(Connection connection) {
-		
 		// The connection.
 		this.connection = connection; 
-		
-		// Set up the view.
+		// Initialize.
 		this.initialize();
 	}
 

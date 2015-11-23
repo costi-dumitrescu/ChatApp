@@ -32,7 +32,7 @@ public class Frame extends JFrame {
 	public Frame(View view) {
 		
 		// Set the view
-		this.view =  view;
+		this.view = view;
 		
 		// Initialize the frame.
 		this.initialize();

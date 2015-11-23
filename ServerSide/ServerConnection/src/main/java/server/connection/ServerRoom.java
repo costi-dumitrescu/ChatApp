@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import assistant.handler.HandlerThread;
 import assistant.message.ChatMessage;
+import assistant.message.Messages;
 
 /**
  * {@link ServerRoom} DAO. This singleton holds all clients connected to the server, and
@@ -63,6 +64,7 @@ public class ServerRoom {
 	 * Remove a client from the room.
 	 * 
 	 * @param client 	   The client to be removed from the room.
+	 * 
 	 * @throws IOException If an error has occurred while closing the connections.
 	 */
 	public void removeClient(ServerHandlerThread client) throws IOException {
@@ -71,8 +73,10 @@ public class ServerRoom {
 		//		- when a user in removed from the room, all others have to be informed about this.
 		//		- wait + notify here.
 		// 		- closeConnections() should be called by the thread him self, not by someone else. 
+		// 		- the client should also be interrupted. It could be blocked in the input stream.
 		
-		client.closeConnections();
+		client.stopClient();
+		// TODO - release the client from the input stream.
 		this.clients.remove(client);
 	}
 	
@@ -108,7 +112,7 @@ public class ServerRoom {
 		// Loop through the list of clients and send the message to each of
 		// them.
 		for (HandlerThread client : this.clients) {
-			client.writeMessage(message);
+			client.send(message);
 		}
 	}
 	
@@ -122,7 +126,7 @@ public class ServerRoom {
 		StringBuilder clients = new StringBuilder();
 		for (ServerHandlerThread client : this.clients) {
 			clients.append(client.getUser());
-			clients.append(",");
+			clients.append(Messages.COMMA);
 		}
 		return clients;
 	}
