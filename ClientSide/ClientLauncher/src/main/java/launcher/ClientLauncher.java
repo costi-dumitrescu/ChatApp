@@ -11,7 +11,7 @@ import view.ClientView;
  * 
  * @author costi.dumitrescu
  */
-public class ClientLucher {
+public class ClientLauncher {
 
 	/**
 	 * Main method.

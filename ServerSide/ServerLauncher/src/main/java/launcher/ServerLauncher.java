@@ -11,7 +11,7 @@ import view.ServerView;
  * 
  * @author costi.dumitrescu
  */
-public class ServerLucher {
+public class ServerLauncher {
 
 	/**
 	 * Main method.

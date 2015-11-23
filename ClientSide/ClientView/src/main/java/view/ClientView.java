@@ -4,8 +4,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
@@ -77,10 +75,13 @@ public class ClientView extends View {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						// Create a connection info pack.
-						ConnectionInfoPack connectionInfoPack = new ConnectionInfoPack.ConnectionInfoPackBuilder().build(loginWindow.getUser(), 
-																														 loginWindow.getServerAddress(), 
-																														 loginWindow.getPortNumber(), 
-																														 ClientView.this);
+						ConnectionInfoPack connectionInfoPack = new ConnectionInfoPack.ConnectionInfoPackBuilder().build(
+								loginWindow.getUser(), 				// The user
+								loginWindow.getServerAddress(), 	// The server addressport
+								loginWindow.getPortNumber(),		// The port number
+								ClientView.this, 					// The loggable to log messages.
+								ClientView.this);					// The lockable to get the object to acquire lock on.
+
 						// Start the connection.
 						try {
 							ClientView.this.connection.start(connectionInfoPack);
@@ -99,60 +100,6 @@ public class ClientView extends View {
 				break;
 			case CHAT_WINDOW:
 				final ChatWindow chatWindow = new ChatWindow();
-				chatWindow.getInputTextArea().addKeyListener(new KeyListener(){
-					/**
-					 * @see java.awt.event.KeyListener.keyTyped(KeyEvent)
-					 */
-					public void keyTyped(KeyEvent e) {
-						// Do nothing!
-					}
-					/**
-					 * @see java.awt.event.KeyListener.keyPressed(KeyEvent)
-					 */
-					public void keyPressed(KeyEvent e) {
-						// Do nothing!
-					}
-					/**
-					 * @see java.awt.event.KeyListener.keyReleased(KeyEvent)
-					 */
-					public void keyReleased(KeyEvent e) {
-						// If ENTER has been pressed then send the message.
-						if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-							// The action to be made.
-							String message = chatWindow.getInputTextArea().getText();
-							if (message != null) {
-								// The message to be sent, a little bit modified.
-								message = message.replace("\n", " ").replace("\r", " ").trim();
-								if (!("".equals(message))) {
-									// Send the message.
-									// TODO ClientView.this.connection.writeMessage(message);
-								}
-							}
-							// After the message is sent, clear the input text area.
-							chatWindow.getInputTextArea().setText(null);
-						}
-					}
-				});
-				chatWindow.getSendButton().addActionListener(new ActionListener() {
-					/**
-					 * @see java.awt.event.ActionListener.actionPerformed(ActionEvent)
-					 */
-					public void actionPerformed(ActionEvent e) {
-						// The action to be made.
-						String message = chatWindow.getInputTextArea().getText();
-						if (message != null) {
-							// The message to be sent, a little bit modified.
-							message = message.replace("\n", " ").replace("\r", " ").trim();
-							if (!("".equals(message))) {
-								// Send the message.
-								// TODO ClientView.this.connection.writeMessage(message);
-							}
-						}
-						// After the message is sent, clear the input text area.
-						chatWindow.getInputTextArea().setText(null);
-					}
-				});
-				// Activate the window.
 				this.activate(chatWindow);
 				break;
 			default:
@@ -190,5 +137,16 @@ public class ClientView extends View {
 	@Override
 	public void logMessage(String message) {
 		this.window.log(message);
+	}
+	
+	/**
+	 * @see assistant.view.Lockable.getLockableComponent()
+	 */
+	/**
+	 * @see assistant.view.Lockable.getLockableObject()
+	 */
+	@Override
+	public Object getLockableObject() {
+		return this.window.getLockableComponent();
 	}
 }

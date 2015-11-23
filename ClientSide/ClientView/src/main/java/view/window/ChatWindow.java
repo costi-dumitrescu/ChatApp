@@ -3,9 +3,14 @@ package view.window;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -115,6 +120,30 @@ public class ChatWindow extends Window {
 
 		this.inputTextArea = new JTextArea();
 		this.inputTextArea.setLineWrap(true);
+		this.inputTextArea.addKeyListener(new KeyListener(){
+			/**
+			 * @see java.awt.event.KeyListener.keyTyped(KeyEvent)
+			 */
+			public void keyTyped(KeyEvent e) {
+				// Do nothing!
+			}
+			/**
+			 * @see java.awt.event.KeyListener.keyPressed(KeyEvent)
+			 */
+			public void keyPressed(KeyEvent e) {
+				// Do nothing!
+			}
+			/**
+			 * @see java.awt.event.KeyListener.keyReleased(KeyEvent)
+			 */
+			public void keyReleased(KeyEvent e) {
+				// If ENTER has been pressed then send the message.
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					// DO
+					ChatWindow.this.doAction();
+				}
+			}
+		});
 		JScrollPane inputScrollPane = new JScrollPane(this.inputTextArea);
 		inputScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		gbcSouth.gridx = 0;
@@ -126,6 +155,16 @@ public class ChatWindow extends Window {
 		southPanel.add(inputScrollPane, gbcSouth);
 
 		this.sendButton = new JButton("Send");
+		this.sendButton.addActionListener(new ActionListener() {
+			/**
+			 * @see java.awt.event.ActionListener.actionPerformed(ActionEvent)
+			 */
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// DO
+				ChatWindow.this.doAction();
+			}
+		});
 		gbcSouth.gridx++;
 		gbcSouth.weightx = 0.0;
 		southPanel.add(this.sendButton, gbcSouth);
@@ -223,6 +262,37 @@ public class ChatWindow extends Window {
 		    for (int i = tableModel.getRowCount() - 1; i > -1; i--) {
 		    	tableModel.removeRow(i);
 		    }
+		}
+	}
+	/**
+	 * @see view.window.Window.getLockableComponent()
+	 */
+	@Override
+	public JComponent getLockableComponent() {
+		return this.inputTextArea;
+	}
+	
+	/**
+	 * To be done when the 'Send' button was pressed. This method is also called
+	 * when ENTER is pressed inside input text area. If there is no text in the
+	 * input text area, nothing is sent to the server. After sending the
+	 * message, the text area is cleared, so the next time the user types text
+	 * to be sent, only that text gets sent.
+	 * 
+	 * TODO : If this method gets called by the button, then after the click on
+	 * the button, the input text-area has to be focused again.
+	 */
+	private void doAction() {
+		// The message to be sent, a little bit modified.
+		String message = this.inputTextArea.getText().replace("\n", " ").replace("\r", " ").trim();
+		// Check to see if the input text area is empty
+		if (!("".equals(message))) {
+			// The chosen lockable object
+			synchronized (this.inputTextArea) {
+				this.inputTextArea.notify();
+			}
+			// After the message is sent, clear the input text area.
+			this.inputTextArea.setText(null);
 		}
 	}
 }

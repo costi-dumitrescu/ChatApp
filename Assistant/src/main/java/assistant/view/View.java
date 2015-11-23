@@ -9,7 +9,7 @@ import assistant.connection.Connection;
  * 
  * @author costi.dumitrescu
  */
-public abstract class View extends JPanel implements Loggable {
+public abstract class View extends JPanel implements Loggable, Lockable {
 
 	/**
 	 * Default serial version.

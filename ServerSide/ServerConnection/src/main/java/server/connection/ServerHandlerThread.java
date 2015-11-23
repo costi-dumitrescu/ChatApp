@@ -26,7 +26,7 @@ public class ServerHandlerThread extends HandlerThread {
 	 */
 	public ServerHandlerThread(Socket socket, Loggable loggable) throws IOException {
 		// Delegate to super constructor.
-		super(socket, loggable);
+		super(socket, loggable, null, null);
 	}
 
 	/**

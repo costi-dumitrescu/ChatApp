@@ -47,7 +47,10 @@ public class ClientConnection extends Connection{
 		Socket socket = new Socket(this.connectionInfoPack.getServerAddress(), this.connectionInfoPack.getPortNumber());
 
 		// Creates the thread to listen from the server.
-		this.clientHandlerThread = new ClientHandlerThread(socket, this.connectionInfoPack.getLoggable(),this.connectionInfoPack.getUser());
+		this.clientHandlerThread = new ClientHandlerThread(socket, 
+														   this.connectionInfoPack.getLoggable(), 
+														   this.connectionInfoPack.getLockable(),
+														   this.connectionInfoPack.getUser());
 		
 		// Start the thread.
 		this.clientHandlerThread.start();

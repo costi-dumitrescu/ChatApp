@@ -1,5 +1,6 @@
 package assistant.connection;
 
+import assistant.view.Lockable;
 import assistant.view.Loggable;
 
 /**
@@ -24,15 +25,17 @@ public class ConnectionInfoPack {
 		 * @param serverAddress The server address
 		 * @param portNumber 	The port number to listen to.
 		 * @param loggable	 	The loggable to log messages.
+		 * @param lockable		The lockable to get the object to acquire lock on.
 		 * 
 		 * @return Connection information pack instance.
 		 */
-		public ConnectionInfoPack build(String user, String serverAddress, int portNumber, Loggable loggable) {
+		public ConnectionInfoPack build(String user, String serverAddress, int portNumber, Loggable loggable, Lockable lockable) {
 			// Create an info pack instance.
 			return new ConnectionInfoPack(user, 
 										  serverAddress, 
 										  portNumber, 
-										  loggable);
+										  loggable,
+										  lockable);
 		}
 	}
 	
@@ -61,18 +64,25 @@ public class ConnectionInfoPack {
 	private Loggable loggable;
 	
 	/**
+	 * The lockable to get the object to acquire lock on.
+	 */
+	private Lockable lockable;
+	
+	/**
 	 * Constructor.
 	 * 
 	 * @param user          The user.
 	 * @param serverAddress The server address
 	 * @param portNumber 	The port number to listen to.
 	 * @param loggable	 	The loggable to log messages.
+	 * @param lockable		The lockable to get the object to acquire lock on.
 	 */
-	private ConnectionInfoPack(String user, String serverAddress, int portNumber, Loggable loggable) {
+	private ConnectionInfoPack(String user, String serverAddress, int portNumber, Loggable loggable, Lockable lockable) {
 		this.user 		   = user;
 		this.serverAddress = serverAddress;
 		this.portNumber    = portNumber;
 		this.loggable      = loggable;
+		this.lockable	   = lockable;
 	}
 	
 	/**
@@ -109,5 +119,14 @@ public class ConnectionInfoPack {
 	 */
 	public Loggable getLoggable() {
 		return loggable;
+	}
+	
+	/**
+	 * Returns the lockable to get the object to acquire lock on.
+	 * 
+	 * @return The lockable to get the object to acquire lock on.
+	 */
+	public Lockable getLockable() {
+		return lockable;
 	}
 }

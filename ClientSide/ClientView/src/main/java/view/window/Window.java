@@ -1,5 +1,6 @@
 package view.window;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
@@ -41,4 +42,11 @@ public abstract class Window extends JPanel {
 	 * @param message The message to be logged.
 	 */
 	public abstract void log(String message);
+
+	/**
+	 * Returns a lockable component to acquire locks on and to and to listen to.
+	 * 
+	 * @return a lockable Component to acquire locks on and to and to listen to.
+	 */
+	public abstract JComponent getLockableComponent();
 }

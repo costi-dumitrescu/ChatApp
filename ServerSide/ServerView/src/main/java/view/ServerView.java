@@ -201,7 +201,8 @@ public class ServerView extends View {
 		return new ConnectionInfoPack.ConnectionInfoPackBuilder().build(/* N/A */ null, 
 																	    /* N/A - localhost */ null, 
 																	    Integer.parseInt(this.portNumberText.getText()), 
-																	    this);
+																	    this,
+																	    /* N/A */ null);
 	}
 	
 	/**
@@ -214,5 +215,14 @@ public class ServerView extends View {
 		
 		// #2 Use the text area.
 		this.logTextArea.append(message + "\n");
+	}
+	
+	/**
+	 * @see assistant.view.Lockable.getLockableComponent()
+	 */
+	@Override
+	public Object getLockableObject() {
+		// N/A
+		return null;
 	}
 }

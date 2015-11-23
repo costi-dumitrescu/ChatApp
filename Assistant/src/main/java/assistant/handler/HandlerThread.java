@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import assistant.message.ChatMessage;
+import assistant.view.Lockable;
 import assistant.view.Loggable;
 
 /**
@@ -41,6 +42,11 @@ public abstract class HandlerThread extends Thread implements Handler {
 	protected Loggable loggable;
 	
 	/**
+	 * The {@link Lockable} to get the object to acquire lock on.
+	 */
+	protected Lockable lockable;
+	
+	/**
 	 * The client associated with this listener.
 	 */
 	protected String user;
@@ -56,10 +62,14 @@ public abstract class HandlerThread extends Thread implements Handler {
 	 * 
 	 * @param socket   The {@link Socket} to read and right to.
 	 * @param loggable The {@link Loggable} to log message to. 
+	 * @param lockable The {@link Lockable} to get the object to acquire lock on.
+	 * @param user	   The user.
 	 */
-	public HandlerThread(Socket socket, Loggable loggable) throws IOException {
+	public HandlerThread(Socket socket, Loggable loggable, Lockable lockable, String user) throws IOException {
 		this.socket 			= socket;
 		this.loggable 		    = loggable;
+		this.lockable			= lockable;
+		this.user 				= user;
 		this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 		this.objectInputStream  = new ObjectInputStream(socket.getInputStream());
 		this.isConnectionOpened = true;
