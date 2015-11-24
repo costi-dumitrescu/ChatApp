@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import assistant.connection.Connection;
+import assistant.connection.ConnectionInfoPack;
 import assistant.view.View;
 import view.window.ChatWindow;
 import view.window.LoginWindow;
@@ -21,6 +22,11 @@ public class ClientView extends View implements NotifiableView {
 	 * The {@link Window} that is displayed on the {@link ClientView}
 	 */
 	private Window window;
+
+	/**
+	 * The {@link ConnectionInfoPack}
+	 */
+	private ConnectionInfoPack connectionInfoPack;
 
 	/**
 	 * Default serial version ID.
@@ -93,5 +99,21 @@ public class ClientView extends View implements NotifiableView {
 		// Re-Re
 		this.repaint();
 		this.revalidate();
+	}
+	
+	/**
+	 * @see view.NotifiableView.setConnectionInfoPack(ConnectionInfoPack)
+	 */
+	@Override
+	public void setConnectionInfoPack(ConnectionInfoPack connectionInfoPack) {
+		this.connectionInfoPack = connectionInfoPack;
+	}
+	
+	/**
+	 * @see view.NotifiableView.getConnectionInfoPack()
+	 */
+	@Override
+	public ConnectionInfoPack getConnectionInfoPack() {
+		return this.connectionInfoPack;
 	}
 }

@@ -73,11 +73,11 @@ public class ChatWindow extends Window {
 	/**
 	 * Constructor.
 	 * 
-	 * @param connection The {@link Connection}
-	 * @param notifiable The {@link NotifiableView}
+	 * @param connection 	 The {@link Connection}
+	 * @param notifiableView The {@link NotifiableView} 
 	 */
-	public ChatWindow(Connection connection, NotifiableView notifiable) {
-		super(connection, notifiable);
+	public ChatWindow(Connection connection, NotifiableView notifiableView) {
+		super(connection, notifiableView);
 		
 		// GO
 		this.isConnectionOpened = true;
@@ -96,7 +96,7 @@ public class ChatWindow extends Window {
 	}
 
 	/**
-	 * TODO - LOGOUT BUTTON.
+	 * TODO - LOGOUT BUTTON -> ask the notifiable view to change its window.
 	 * 
 	 * @see assistant.view.Viewable.createView()
 	 */
@@ -428,19 +428,19 @@ public class ChatWindow extends Window {
 				 */
 				@Override
 				public void run() {
-					// Create the message first.
-					ChatMessage normalMessage = null;
 					try {
-						normalMessage = MessageHandler.getInstance().createMessage(MessageType.MESSAGE, /*TODO*/ "Useru PIZDII", message);
+						String user = ChatWindow.this.notifiableView.getConnectionInfoPack().getUser();
+						// Create the {@link ChatMessage}.
+						ChatMessage chatMessage = MessageHandler.getInstance().createMessage(MessageType.MESSAGE, user, message);
+						// The chosen lockable object
+						synchronized (OutgoingMessagesRoom.getInstance()) {
+							// Add the message
+							OutgoingMessagesRoom.getInstance().getMessages().add(chatMessage);
+							// Notify the waiter
+							OutgoingMessagesRoom.getInstance().notify();
+						}
 					} catch (ParserConfigurationException e) {
 						// Not much we can do.
-					}
-					// The chosen lockable object
-					synchronized (OutgoingMessagesRoom.getInstance()) {
-						// Add the message
-						OutgoingMessagesRoom.getInstance().getMessages().add(normalMessage);
-						// Notify the waiter
-						OutgoingMessagesRoom.getInstance().notify();
 					}
 				}
 			}.start();

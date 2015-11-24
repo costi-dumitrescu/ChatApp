@@ -143,16 +143,23 @@ public class LoginWindow extends Window {
 			 */
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// Start the connection.
-				try {
-					LoginWindow.this.connection.start(LoginWindow.this.createConnectionInfoPack());
-					// If no exception has be thrown, it means the
-					// connection has been established, and the {@link ChatWindow}
-					// could be presented.
-					LoginWindow.this.notifiable.setWindow(WindowType.CHAT_WINDOW);
-				} catch (IOException | InterruptedException ex) {
-					// Not much we can do.
-					JOptionPane.showMessageDialog(LoginWindow.this, ex.getLocalizedMessage());
+				
+				// Create the {@link ConnectionInfoPack} for this session.
+				ConnectionInfoPack connectionInfoPack = LoginWindow.this.createConnectionInfoPack();
+				// Start the connection, only if the pack has been created.
+				if (connectionInfoPack != null) {
+					try {
+						LoginWindow.this.connection.start(connectionInfoPack);
+						// If no exception has be thrown, it means the
+						// connection has been established, and the {@link
+						// ChatWindow} could be presented, and the pack could be saved.
+						LoginWindow.this.notifiableView.setConnectionInfoPack(connectionInfoPack);
+						LoginWindow.this.notifiableView.setWindow(WindowType.CHAT_WINDOW);
+					} catch (IOException | InterruptedException ex) {
+						// Not much we can do.
+						JOptionPane.showMessageDialog(LoginWindow.this, ex.getLocalizedMessage());
+					}
+
 				}
 			}
 		});

@@ -21,7 +21,7 @@ public abstract class Window extends JPanel {
 	/**
 	 * The {@link NotifiableView}
 	 */
-	protected NotifiableView notifiable;
+	protected NotifiableView notifiableView;
 	
 	/**
 	 * The {@link Connection} 
@@ -34,9 +34,9 @@ public abstract class Window extends JPanel {
 	 * @param connection The {@link Connection}
 	 * @param notifiable The {@link NotifiableView}
 	 */
-	public Window(Connection connection, NotifiableView notifiable) {
+	public Window(Connection connection, NotifiableView notifiableView) {
 		this.connection = connection;
-		this.notifiable = notifiable;
+		this.notifiableView = notifiableView;
 		this.initialize();
 	}
 	
