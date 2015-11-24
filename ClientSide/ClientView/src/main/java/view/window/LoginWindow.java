@@ -6,9 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -164,26 +162,5 @@ public class LoginWindow extends Window {
 	 */
 	public JButton getLoginButton() {
 		return loginButton;
-	}
-	
-	/**
-	 * @see view.window.Window.log(String)
-	 */
-	@Override
-	public void log(String message) {
-		//#1 log4j
-		logger.warn(message);
-		
-		//#2 dialog
-		JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE);
-	}
-	
-	/**
-	 * @see view.window.Window.getLockableComponent()
-	 */
-	@Override
-	public JComponent getLockableComponent() {
-		// N/A
-		return null;
 	}
 }

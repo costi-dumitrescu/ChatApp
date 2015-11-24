@@ -8,7 +8,7 @@ import java.io.IOException;
  * @author costi.dumitrescu
  */
 public abstract class Connection {
-
+	
 	/**
 	 * The connection information.
 	 */

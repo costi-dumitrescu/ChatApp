@@ -5,13 +5,17 @@ import java.net.Socket;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.DOMException;
 
 import assistant.handler.HandlerThread;
 import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
-import assistant.view.Loggable;
+import assistant.message.Messages;
+import assistant.message.arrivals.LoginMessagesRoom;
+import assistant.message.arrivals.LogoutMessagesRoom;
+import assistant.message.arrivals.WhoisinMessagesRoom;
 
 /**
  * {@link ServerHandlerThread} is a {@link HandlerThread} with additional tasks. 
@@ -19,14 +23,18 @@ import assistant.view.Loggable;
 public class ServerHandlerThread extends HandlerThread {
 
 	/**
+	 * Logger for logging.
+	 */
+	private Logger logger = Logger.getLogger(ServerHandlerThread.class);
+	
+	/**
 	 * Constructor
 	 * 
 	 * @param socket   The socket to read and write to.
-	 * @param loggable The {@link Loggable} instance.
 	 */
-	public ServerHandlerThread(Socket socket, Loggable loggable) throws IOException {
+	public ServerHandlerThread(Socket socket) throws IOException {
 		// Delegate to super constructor.
-		super(socket, loggable, null, null);
+		super(socket, null);
 	}
 
 	/**
@@ -44,13 +52,13 @@ public class ServerHandlerThread extends HandlerThread {
 				MessageHandler.getInstance().handleMessage(this, message);
 			}
 		} catch (DOMException | ClassNotFoundException | IOException | ParserConfigurationException e) {
-			ServerHandlerThread.this.loggable.logMessage("Exception in client thread : " + this.hashCode() + " - " + e);
+			ServerHandlerThread.this.logger.error("Exception in client thread : " + this.hashCode(), e);
 			// The handler thread has terminated.
 			// It has to remove himself from the room of clients.
 			try {
 				ServerRoom.getInstance().removeClient(ServerHandlerThread.this);
 			} catch (IOException ioe) {
-				ServerHandlerThread.this.loggable.logMessage("Exception removing client : " + this.hashCode() + " - " + ioe);
+				ServerHandlerThread.this.logger.error("Exception removing client : " + this.hashCode(), ioe);
 			}
 		}
 	}
@@ -59,10 +67,13 @@ public class ServerHandlerThread extends HandlerThread {
 	 * @see assistant.handler.Handler.handleLogin(String, String)
 	 */
 	public void handleLogin(String user, String message) throws IOException, ParserConfigurationException {
-
-		// Log the message.
-		this.loggable.logMessage(user + " " + message);
-
+		
+		// Log the message - Give a sign a login message has arrived.
+		synchronized (LoginMessagesRoom.getInstance()) {
+			LoginMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LoginMessagesRoom.getInstance().notify();
+		}
+		
 		// As this is the server side, and moreover this is the first chat between both sides, this handler doesn't know the name of the user.
 		// After the client has been accepted, save it's name.
 		this.setUser(user);
@@ -93,8 +104,11 @@ public class ServerHandlerThread extends HandlerThread {
 	 */
 	public void handleWhoIsIn(String user, String message) throws IOException, ParserConfigurationException {
 		
-		// Log the message.
-		this.loggable.logMessage(user + " " + message);
+		// Log the message - Give a sign a who-is-in message has arrived.
+		synchronized (WhoisinMessagesRoom.getInstance()) {
+			WhoisinMessagesRoom.getInstance().addMessage(message);
+			WhoisinMessagesRoom.getInstance().notify();
+		}
 		
 		/*
 		 * 
@@ -111,6 +125,9 @@ public class ServerHandlerThread extends HandlerThread {
 	 */
 	public void handleMessage(String user, String message) throws IOException, ParserConfigurationException {
 		
+		// We shouldn't log the message on the screen. This is just a regularly message.
+		
+		
 		/*
 		 * 
 		 * #1
@@ -126,9 +143,12 @@ public class ServerHandlerThread extends HandlerThread {
 	 */
 	public void handleLogout(String user, String message) throws IOException, ParserConfigurationException {
 
-		// Log the message.
-		this.loggable.logMessage(user + " " + message);
-
+		// Log the message - Give a sign a logout message has arrived.
+		synchronized (LogoutMessagesRoom.getInstance()) {
+			LogoutMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LogoutMessagesRoom.getInstance().notify();
+		}
+		
 		// Stop this handler thread.
 		this.stopClient();
 

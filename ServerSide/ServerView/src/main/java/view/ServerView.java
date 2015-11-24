@@ -17,6 +17,9 @@ import org.apache.log4j.Logger;
 
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
+import assistant.message.arrivals.LoginMessagesRoom;
+import assistant.message.arrivals.LogoutMessagesRoom;
+import assistant.message.arrivals.WhoisinMessagesRoom;
 import assistant.view.View;
 
 /**
@@ -55,6 +58,11 @@ public class ServerView extends View {
 	 * The stop button.
 	 */
 	private JButton stopButton;
+	
+	/**
+	 * <code>true</code> as long as the connection is opened.
+	 */
+	private boolean isConnectionOpened;
 
 	/**
 	 * Constructor.
@@ -63,6 +71,17 @@ public class ServerView extends View {
 	 */
 	public ServerView(Connection connection) {
 		super(connection);
+		// GO
+		this.isConnectionOpened = true;
+		
+		// login messages listener thread.
+		this.createListenerThreadForLoginMessages();
+		
+		// users listener thread.
+		this.createListenerThreadForUsers();
+		
+		// logout messages listener thread.
+		this.createListenerThreadForLogoutMessages();
 	}
 
 	/**
@@ -198,31 +217,128 @@ public class ServerView extends View {
 	 */
 	private ConnectionInfoPack createTheInfoPack() {
 		// Create an info pack.
-		return new ConnectionInfoPack.ConnectionInfoPackBuilder().build(/* N/A */ null, 
-																	    /* N/A - localhost */ null, 
-																	    Integer.parseInt(this.portNumberText.getText()), 
-																	    this,
-																	    /* N/A */ null);
+		return new ConnectionInfoPack.ConnectionInfoPackBuilder().build(null, /* N/A */ 
+																	    null, /* N/A - localhost */
+																	    Integer.parseInt(this.portNumberText.getText())); 
 	}
 	
 	/**
-	 * @see assistant.view.Loggable.logMessage(String)
+	 * This thread listens on the {@link LoginMessagesRoom} list and update the
+	 * chat text area.
 	 */
-	@Override 
-	public void logMessage(String message) {
-		// #1 Use log4j
-		logger.warn(message);
-		
-		// #2 Use the text area.
-		this.logTextArea.append(message + "\n");
+	private void createListenerThreadForLoginMessages() {
+		// create a new thread to handle this.
+		new Thread() {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ServerView.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (LoginMessagesRoom.getInstance()) {
+						try {
+							LoginMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(LoginMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							for (String message : LoginMessagesRoom.getInstance().getMessages()) {
+								// Append message in the chat text area.
+								ServerView.this.logTextArea.append(message + "\n");
+								// Put the caret at the end.
+								ServerView.this.logTextArea.setCaretPosition(ServerView.this.logTextArea.getDocument().getLength());
+							}
+							// Remove all messages.
+							LoginMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
 	}
 	
 	/**
-	 * @see assistant.view.Lockable.getLockableComponent()
+	 * This thread listens on the {@link WhoisinMessagesRoom} list and update the
+	 * users table.
 	 */
-	@Override
-	public Object getLockableObject() {
-		// N/A
-		return null;
+	private void createListenerThreadForUsers() {
+		// create a new thread to handle this.
+		new Thread() {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ServerView.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (WhoisinMessagesRoom.getInstance()) {
+						try {
+							WhoisinMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(WhoisinMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							for (String message : WhoisinMessagesRoom.getInstance().getMessages()) {
+								// Append message in the chat text area.
+								ServerView.this.logTextArea.append(message + "\n");
+								// Put the caret at the end.
+								ServerView.this.logTextArea.setCaretPosition(ServerView.this.logTextArea.getDocument().getLength());
+							}
+							// Remove all messages.
+							WhoisinMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
+	}
+	
+	/**
+	 * This thread listens on the {@link LogoutMessagesRoom} list and update the
+	 * chat text area.
+	 */
+	private void createListenerThreadForLogoutMessages() {
+		// create a new thread to handle this.
+		new Thread() {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ServerView.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (LogoutMessagesRoom.getInstance()) {
+						try {
+							LogoutMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(LogoutMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							for (String message : LogoutMessagesRoom.getInstance().getMessages()) {
+								// Append message in the chat text area.
+								ServerView.this.logTextArea.append(message + "\n");
+								// Put the caret at the end.
+								ServerView.this.logTextArea.setCaretPosition(ServerView.this.logTextArea.getDocument().getLength());
+							}
+							// Remove all messages.
+							LogoutMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
 	}
 }

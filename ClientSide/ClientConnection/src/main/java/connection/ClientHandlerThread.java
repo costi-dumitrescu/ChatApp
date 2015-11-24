@@ -5,6 +5,7 @@ import java.net.Socket;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.DOMException;
 
 import assistant.handler.HandlerThread;
@@ -12,8 +13,11 @@ import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
 import assistant.message.Messages;
-import assistant.view.Lockable;
-import assistant.view.Loggable;
+import assistant.message.arrivals.LoginMessagesRoom;
+import assistant.message.arrivals.LogoutMessagesRoom;
+import assistant.message.arrivals.NormalMessagesRoom;
+import assistant.message.arrivals.WhoisinMessagesRoom;
+import assistant.message.departures.ChatMessagesRoom;
 
 /**
  * {@link ClientHandlerThread} is a {@link HandlerThread} with additional tasks.
@@ -23,16 +27,19 @@ import assistant.view.Loggable;
 public class ClientHandlerThread extends HandlerThread {
 
 	/**
+	 * Logger for logging.
+	 */
+	private Logger logger = Logger.getLogger(ClientHandlerThread.class);
+	
+	/**
 	 * Constructor
 	 * 
 	 * @param socket   The {@link Socket} to read and write to.
-	 * @param loggable The {@link Loggable} instance.
-	 * @param lockable The {@link Lockable} to get the object to acquire lock on.
 	 * @param user	   The user.
 	 */
-	public ClientHandlerThread(Socket socket, Loggable loggable, Lockable lockable, String user ) throws IOException {
+	public ClientHandlerThread(Socket socket, String user ) throws IOException {
 		// Delegate to super constructor.
-		super(socket, loggable, lockable, user);
+		super(socket, user);
 	}
 	
 	/**
@@ -43,7 +50,7 @@ public class ClientHandlerThread extends HandlerThread {
 		
 		// Let the views to synchronize them self.
 		try {
-			Thread.sleep(100);
+			Thread.sleep(300);
 		} catch (InterruptedException e1) {
 			// Not much we can do.
 		}
@@ -51,7 +58,7 @@ public class ClientHandlerThread extends HandlerThread {
 		/*
 		 * Listener thread.
 		 */
-		new Thread() {
+		new Thread("Listener-From-The-Server-Thread") {
 			/**
 			 * @see java.lang.Runnable.run()
 			 */
@@ -61,18 +68,19 @@ public class ClientHandlerThread extends HandlerThread {
 				try {
 					// Loop until the condition is no longer met. 
 					while (ClientHandlerThread.this.isConnectionOpened) {
-						ChatMessage message = (ChatMessage) ClientHandlerThread.this.objectInputStream.readObject();
+						ChatMessage chatMessage = (ChatMessage) ClientHandlerThread.this.objectInputStream.readObject();
+						System.err.println(Thread.currentThread().getName() + " in execution RECEIVING message : " + chatMessage);
 						// Ask the {@link MessageHandler} to handle the message.
-						MessageHandler.getInstance().handleMessage(ClientHandlerThread.this, message);
+						MessageHandler.getInstance().handleMessage(ClientHandlerThread.this, chatMessage);
 					}
 				} catch (DOMException | ClassNotFoundException | IOException | ParserConfigurationException e) {
-					ClientHandlerThread.this.loggable.logMessage(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode() + Messages.SEPARATOR + e);
+					ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
 					// The handler thread has terminated.
 					// It has to clear rubbish.
 					try {
 						ClientHandlerThread.this.stopClient();
 					} catch (IOException ioe) {
-						ClientHandlerThread.this.loggable.logMessage(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode() + Messages.SEPARATOR + ioe);
+						ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), ioe);
 					}
 				}
 			};
@@ -80,7 +88,7 @@ public class ClientHandlerThread extends HandlerThread {
 		/*
 		 *  Sender thread.
 		 */
-		new Thread() {
+		new Thread("Sender-To-The-Server-Thread") {
 			/**
 			 * @see java.lang.Runnable.run()
 			 */
@@ -91,43 +99,49 @@ public class ClientHandlerThread extends HandlerThread {
 					ChatMessage loginMessage = MessageHandler.getInstance().createMessage(MessageType.LOGIN, ClientHandlerThread.this.user, Messages.USER_IN);
 					ClientHandlerThread.this.send(loginMessage);
 				} catch (ParserConfigurationException | IOException e) {
-					ClientHandlerThread.this.loggable.logMessage(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode() + Messages.SEPARATOR + e);
+					ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
 					// The handler thread has terminated.
 					// It has to clear rubbish
 					try {
 						ClientHandlerThread.this.stopClient();
 					} catch (IOException ioe) {
-						ClientHandlerThread.this.loggable.logMessage(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode() + Messages.SEPARATOR + ioe);
+						ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), ioe);
 					}
 				}
 				
 				// Wait until a message needs to be sent, doesn't matter what
 				// kind of message that is :
+				// - login message
 				// - normal message
 				// - logout message
 				// - etc.
 				
-				// This thread will rise from the ashes whenever it gets notified by the lockable object. In our case that's exactly the input text area.
-				// Whenever someone hits the enter button in the input text area, this thread will send that text to the server.
+				// This thread will rise from the ashes whenever it gets notified by the lockable object.
+				// Whenever someone notifies this thread, it  will send that chat message to the server.
 				
-				// The {@link Lockable} object to acquire lock on.
-				Object lockableObject = ClientHandlerThread.this.lockable.getLockableObject();
 				while (ClientHandlerThread.this.isConnectionOpened) {
-					synchronized (lockableObject) {
+					// The lockable object to acquire lock on.
+					synchronized (ChatMessagesRoom.getInstance()) {
 						try {
-							lockableObject.wait();
-							ChatMessage message = MessageHandler.getInstance().createMessage(MessageType.MESSAGE, 
-																							 ClientHandlerThread.this.user, 
-																					 /*TODO*/"MUIE");
-							ClientHandlerThread.this.send(message);
-						} catch (InterruptedException | ParserConfigurationException | IOException e) {
-							// The handler thread has terminated.
-							// It has to clear rubbish
-							try {
-								ClientHandlerThread.this.stopClient();
-							} catch (IOException ioe) {
-								ClientHandlerThread.this.loggable.logMessage(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode() + Messages.SEPARATOR + ioe);
+							ChatMessagesRoom.getInstance().wait();
+						}  catch (InterruptedException e) {
+							ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(ChatMessagesRoom.getInstance().getChatMessages().size() > 0) {
+							// Send all messages to the server.
+							for (ChatMessage chatMessage : ChatMessagesRoom.getInstance().getChatMessages()) {
+								System.err.println(Thread.currentThread().getName() + " in execution SENDING message : " + chatMessage);
+								try {
+									ClientHandlerThread.this.send(chatMessage);
+								} catch (IOException e) {
+									ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
+									continue;
+								}
 							}
+							// Remove all chat messages.
+							ChatMessagesRoom.getInstance().getChatMessages().clear();
 						}
 					}
 				}
@@ -139,32 +153,43 @@ public class ClientHandlerThread extends HandlerThread {
 	 * @see assistant.handler.Handler.handleLogin(String, String)
 	 */
 	public void handleLogin(String user, String message) {
-		// Log the message.
-		this.loggable.logMessage(user + Messages.SEPARATOR + message);
+		// Give a sign a login message has arrived.
+		synchronized (LoginMessagesRoom.getInstance()) {
+			LoginMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LoginMessagesRoom.getInstance().notify();
+		}
 	}
 
 	/**
 	 * @see assistant.handler.Handler.handleWhoIsIn(String, String)
 	 */
 	public void handleWhoIsIn(String user, String message) {
-		// Users. Special logging. 
-		message = message + Messages.NEW_CLIENTS;
-		this.loggable.logMessage(message);
+		// Give a sign a who-is-in message has arrived.
+		synchronized (WhoisinMessagesRoom.getInstance()) {
+			WhoisinMessagesRoom.getInstance().addMessage(message);
+			WhoisinMessagesRoom.getInstance().notify();
+		}
 	}
 
 	/**
 	 * @see assistant.connection.ConnectionHandler.handleMessage()
 	 */
 	public void handleMessage(String user, String message) {
-		// Log the message.
-		this.loggable.logMessage(user + Messages.SEPARATOR + message);
+		// Give a sign a message has arrived.
+		synchronized (NormalMessagesRoom.getInstance()) {
+			NormalMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			NormalMessagesRoom.getInstance().notify();
+		}
 	}
 
 	/**
 	 * @see assistant.connection.ConnectionHandler.handleLogout()
 	 */
 	public void handleLogout(String user, String message) {
-		// Log the message.
-		this.loggable.logMessage(user + Messages.SEPARATOR + message);;
+		// Give a sign a logout message has arrived.
+		synchronized (LogoutMessagesRoom.getInstance()) {
+			LogoutMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LogoutMessagesRoom.getInstance().notify();
+		}
 	}
 }

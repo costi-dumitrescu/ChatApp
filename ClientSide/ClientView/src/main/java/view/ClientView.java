@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
 import assistant.connection.Connection;
@@ -78,9 +80,7 @@ public class ClientView extends View {
 						ConnectionInfoPack connectionInfoPack = new ConnectionInfoPack.ConnectionInfoPackBuilder().build(
 								loginWindow.getUser(), 				// The user
 								loginWindow.getServerAddress(), 	// The server addressport
-								loginWindow.getPortNumber(),		// The port number
-								ClientView.this, 					// The loggable to log messages.
-								ClientView.this);					// The lockable to get the object to acquire lock on.
+								loginWindow.getPortNumber());		// The port number
 
 						// Start the connection.
 						try {
@@ -91,7 +91,7 @@ public class ClientView extends View {
 							ClientView.this.initialize(WindowType.CHAT_WINDOW);
 						} catch (IOException | InterruptedException ex) {
 							// Not much we can do.
-							ClientView.this.logMessage(ex.getLocalizedMessage());
+							JOptionPane.showMessageDialog(ClientView.this, ex.getLocalizedMessage());
 						}
 					}
 				});
@@ -100,6 +100,7 @@ public class ClientView extends View {
 				break;
 			case CHAT_WINDOW:
 				final ChatWindow chatWindow = new ChatWindow();
+				// Activate the window.
 				this.activate(chatWindow);
 				break;
 			default:
@@ -129,24 +130,5 @@ public class ClientView extends View {
 		// Re-Re
 		this.repaint();
 		this.revalidate();
-	}
-	
-	/**
-	 * @see assistant.view.Loggable.logMessage(String)
-	 */
-	@Override
-	public void logMessage(String message) {
-		this.window.log(message);
-	}
-	
-	/**
-	 * @see assistant.view.Lockable.getLockableComponent()
-	 */
-	/**
-	 * @see assistant.view.Lockable.getLockableObject()
-	 */
-	@Override
-	public Object getLockableObject() {
-		return this.window.getLockableComponent();
 	}
 }

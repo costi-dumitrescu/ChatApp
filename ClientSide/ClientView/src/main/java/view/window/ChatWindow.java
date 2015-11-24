@@ -8,9 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -18,8 +16,17 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.xml.parsers.ParserConfigurationException;
 
+import assistant.message.ChatMessage;
+import assistant.message.MessageHandler;
+import assistant.message.MessageType;
 import assistant.message.Messages;
+import assistant.message.arrivals.LoginMessagesRoom;
+import assistant.message.arrivals.LogoutMessagesRoom;
+import assistant.message.arrivals.NormalMessagesRoom;
+import assistant.message.arrivals.WhoisinMessagesRoom;
+import assistant.message.departures.ChatMessagesRoom;
 
 /**
  * The main view.
@@ -53,23 +60,47 @@ public class ChatWindow extends Window {
 	 * the send the message.
 	 */
 	private JButton sendButton;
+	
+	/**
+	 * <code>true</code> as long as the connection is opened.
+	 * 
+	 * TODO : on stop/logout this should go to false.
+	 */
+	private boolean isConnectionOpened;
 
 	/**
 	 * Constructor.
 	 */
 	public ChatWindow() {
+		
+		// GO
+		this.isConnectionOpened = true;
+		
+		// login messages listener thread.
+		this.createListenerThreadForLoginMessages();
+		
+		// messages listener thread.
+		this.createListenerThreadForMessages();
+		
+		// users listener thread.
+		this.createListenerThreadForUsers();
+		
+		// logout messages listener thread.
+		this.createListenerThreadForLogoutMessages();
 	}
 
 	/**
+	 * TODO - LOGOUT BUTTON.
+	 * 
 	 * @see assistant.view.Viewable.createView()
 	 */
-	public void initialize() {// TODO - LOGOUT BUTTON.
+	public void initialize() {
 		
+		// {@link GridBagLayout}
 		this.setLayout(new GridBagLayout());
-		this.setBorder(BorderFactory.createTitledBorder("Chat Application"));
 		GridBagConstraints gbc = new GridBagConstraints();
 		
-		// Chat
+		// CHAT TEXT AREA.
 		this.chatTextArea = new JTextArea();
 		this.chatTextArea.setLineWrap(true);
 		this.chatTextArea.setEditable(false);
@@ -83,7 +114,7 @@ public class ChatWindow extends Window {
 		gbc.insets = new Insets(2, 2, 2, 2);
 		this.add(chatScrollPane, gbc);
 
-		// Users.
+		// USERS TABLE.
 		DefaultTableModel usersModel = new DefaultTableModel() {
 			/**
 			 * Serial version.
@@ -99,7 +130,6 @@ public class ChatWindow extends Window {
 				return false;
 			}
 		};
-
 		usersModel.addColumn("Users");
 		this.usersTable = new JTable(usersModel);
 		this.usersTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -113,11 +143,12 @@ public class ChatWindow extends Window {
 		gbc.gridx++;
 		this.add(usersScrollPane, gbc);
 		
-		// South Panel.
+		// SOUTH PANEL.
 		JPanel southPanel = new JPanel();
 		southPanel.setLayout(new GridBagLayout());
 		GridBagConstraints gbcSouth = new GridBagConstraints();
-
+		
+		// INPUT TEXT AREA.
 		this.inputTextArea = new JTextArea();
 		this.inputTextArea.setLineWrap(true);
 		this.inputTextArea.addKeyListener(new KeyListener(){
@@ -140,7 +171,7 @@ public class ChatWindow extends Window {
 				// If ENTER has been pressed then send the message.
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					// DO
-					ChatWindow.this.doAction();
+					ChatWindow.this.doSendNormalMessage();
 				}
 			}
 		});
@@ -154,6 +185,7 @@ public class ChatWindow extends Window {
 		gbcSouth.insets = new Insets(2, 2, 2, 2);
 		southPanel.add(inputScrollPane, gbcSouth);
 
+		// SEND BUTTON
 		this.sendButton = new JButton("Send");
 		this.sendButton.addActionListener(new ActionListener() {
 			/**
@@ -162,79 +194,153 @@ public class ChatWindow extends Window {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// DO
-				ChatWindow.this.doAction();
+				ChatWindow.this.doSendNormalMessage();
 			}
 		});
 		gbcSouth.gridx++;
 		gbcSouth.weightx = 0.0;
 		southPanel.add(this.sendButton, gbcSouth);
-
 		gbc.gridx = 0;
 		gbc.gridy++;
 		gbc.gridwidth++;
 		gbc.insets = new Insets(2, 2, 2, 2);
-		this.add(southPanel, gbc);}
-	
-	/**
-	 * Returns the chat text area.
-	 * 
-	 * @return the chat text area.
-	 */
-	public JTextArea getChatTextArea() {
-		return chatTextArea;
+		this.add(southPanel, gbc);
 	}
 	
 	/**
-	 * Returns the users table.
-	 * 
-	 * @return the users table.
+	 * This thread listens on the {@link LoginMessagesRoom} list and update the
+	 * chat text area.
 	 */
-	public JTable getUsersTable() {
-		return usersTable;
+	private void createListenerThreadForLoginMessages() {
+		// create a new thread to handle this.
+		new Thread("Listener-Thread-For-Login-Messages") {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ChatWindow.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (LoginMessagesRoom.getInstance()) {
+						try {
+							LoginMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(LoginMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							for (String message : LoginMessagesRoom.getInstance().getMessages()) {
+								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
+								// Append message in the chat text area.
+								ChatWindow.this.chatTextArea.append(message + "\n");
+								// Put the caret at the end.
+								ChatWindow.this.chatTextArea.setCaretPosition(ChatWindow.this.chatTextArea.getDocument().getLength());
+							}
+							// Remove all messages.
+							LoginMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
 	}
 	
-	
 	/**
-	 * Returns the input text area.
-	 * 
-	 * @return the input text area.
+	 * This thread listens on the {@link NormalMessagesRoom} list and update the
+	 * chat text area.
 	 */
-	public JTextArea getInputTextArea() {
-		return inputTextArea;
+	private void createListenerThreadForMessages() {
+		// create a new thread to handle this.
+		new Thread("Listener-Thread-For-Messages") {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ChatWindow.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (NormalMessagesRoom.getInstance()) {
+						try {
+							NormalMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(NormalMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							for (String message : NormalMessagesRoom.getInstance().getMessages()) {
+								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
+								// Append message in the chat text area.
+								ChatWindow.this.chatTextArea.append(message + "\n");
+								// Put the caret at the end.
+								ChatWindow.this.chatTextArea.setCaretPosition(ChatWindow.this.chatTextArea.getDocument().getLength());
+							}
+							// Remove all messages.
+							NormalMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
 	}
 	
 	/**
-	 * Returns the send button.
-	 * 
-	 * @return the send button.
+	 * This thread listens on the {@link WhoisinMessagesRoom} list and update the
+	 * users table.
 	 */
-	public JButton getSendButton() {
-		return sendButton;
+	private void createListenerThreadForUsers() {
+		// create a new thread to handle this.
+		new Thread("Listener-Thread-For-Users") {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ChatWindow.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (WhoisinMessagesRoom.getInstance()) {
+						try {
+							WhoisinMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(WhoisinMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							// A message represents the list of users, separated by comma.
+							for (String message : WhoisinMessagesRoom.getInstance().getMessages()) {
+								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
+								ChatWindow.this.removeAllUsers();
+								String[] users = message.split(Messages.COMMA);
+								for (String user : users) {
+									ChatWindow.this.appendUser(user);
+								}
+							}
+							// Remove all messages.
+							WhoisinMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
 	}
 	
 	/**
-	 * @see view.window.Window.log(String)
+	 * Remove all users.
 	 */
-	@Override
-	public void log(String message) {
-		
-		// #1 log4j
-		logger.warn(message);
-		
-		// First check if this is a NEW_CLIENTS type message.
-		if (message.contains(Messages.NEW_CLIENTS)) {
-			this.removeAllUsers();
-			message = message.substring(0, message.indexOf(Messages.NEW_CLIENTS));
-			String[] users = message.split(Messages.COMMA);
-			for (String user : users) {
-				this.appendUser(user);
-			}
-		}
-		// Otherwise just a normal message (or even exception)
-		else {
-			this.chatTextArea.append(message + "\n");
-			// The caret at the end.
-			this.chatTextArea.setCaretPosition(this.chatTextArea.getDocument().getLength());
+	private void removeAllUsers() {
+		DefaultTableModel tableModel = (DefaultTableModel) this.usersTable.getModel();
+		if (tableModel.getRowCount() > 0) {
+		    for (int i = tableModel.getRowCount() - 1; i > -1; i--) {
+		    	tableModel.removeRow(i);
+		    }
 		}
 	}
 	
@@ -254,22 +360,44 @@ public class ChatWindow extends Window {
 	}
 	
 	/**
-	 * Clear the list of users.
+	 * This thread listens on the {@link LogoutMessagesRoom} list and update the
+	 * chat text area.
 	 */
-	private void removeAllUsers() {
-		DefaultTableModel tableModel = (DefaultTableModel) this.usersTable.getModel();
-		if (tableModel.getRowCount() > 0) {
-		    for (int i = tableModel.getRowCount() - 1; i > -1; i--) {
-		    	tableModel.removeRow(i);
-		    }
-		}
-	}
-	/**
-	 * @see view.window.Window.getLockableComponent()
-	 */
-	@Override
-	public JComponent getLockableComponent() {
-		return this.inputTextArea;
+	private void createListenerThreadForLogoutMessages() {
+		// create a new thread to handle this.
+		new Thread() {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
+				// forever.
+				while (ChatWindow.this.isConnectionOpened) {
+					// Synchronize on the list of messages.
+					synchronized (LogoutMessagesRoom.getInstance()) {
+						try {
+							LogoutMessagesRoom.getInstance().wait();
+						} catch (InterruptedException e) {
+							// Not much we can do. Just continue.
+							continue;
+						}
+						// This thread could be released by mistake, so we have to check the size.
+						if(LogoutMessagesRoom.getInstance().getMessages().size() > 0) {
+							// Loop through all messages (even if at the list will have only one message at any time)
+							for (String message : LogoutMessagesRoom.getInstance().getMessages()) {
+								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
+								// Append message in the chat text area.
+								ChatWindow.this.chatTextArea.append(message + "\n");
+								// Put the caret at the end.
+								ChatWindow.this.chatTextArea.setCaretPosition(ChatWindow.this.chatTextArea.getDocument().getLength());
+							}
+							// Remove all messages.
+							LogoutMessagesRoom.getInstance().getMessages().clear();
+						}
+					}
+				}
+			};
+		}.start();
 	}
 	
 	/**
@@ -282,15 +410,34 @@ public class ChatWindow extends Window {
 	 * TODO : If this method gets called by the button, then after the click on
 	 * the button, the input text-area has to be focused again.
 	 */
-	private void doAction() {
+	private void doSendNormalMessage() {
 		// The message to be sent, a little bit modified.
-		String message = this.inputTextArea.getText().replace("\n", " ").replace("\r", " ").trim();
+		final String message = this.inputTextArea.getText().replace("\n", " ").replace("\r", " ").trim();
 		// Check to see if the input text area is empty
 		if (!("".equals(message))) {
-			// The chosen lockable object
-			synchronized (this.inputTextArea) {
-				this.inputTextArea.notify();
-			}
+			// create a new thread to handle this.
+			new Thread("Do-Send-Normal-Message-Thread") {
+				/**
+				 * @see java.lang.Runnable.run()
+				 */
+				@Override
+				public void run() {
+					// Create the message first.
+					ChatMessage normalMessage = null;
+					try {
+						normalMessage = MessageHandler.getInstance().createMessage(MessageType.MESSAGE, /*TODO*/ "Useru PIZDII", message);
+					} catch (ParserConfigurationException e) {
+						// Not much we can do.
+					}
+					// The chosen lockable object
+					synchronized (ChatMessagesRoom.getInstance()) {
+						// Add the message
+						ChatMessagesRoom.getInstance().getChatMessages().add(normalMessage);
+						// Notify the waiter
+						ChatMessagesRoom.getInstance().notify();
+					}
+				}
+			}.start();
 			// After the message is sent, clear the input text area.
 			this.inputTextArea.setText(null);
 		}

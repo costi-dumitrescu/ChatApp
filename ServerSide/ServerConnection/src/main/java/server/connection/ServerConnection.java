@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
 
@@ -14,6 +16,11 @@ import assistant.connection.ConnectionInfoPack;
  */
 public class ServerConnection extends Connection {
 
+	/**
+	 * Logger for logging.
+	 */
+	private Logger logger = Logger.getLogger(Connection.class);
+	
 	/**
 	 * The socket used by the server. A server socket waits for requests to come
 	 * in over the network. It performs some operation based on that request,
@@ -71,7 +78,7 @@ public class ServerConnection extends Connection {
 			} catch (IOException e) {
 				
 				// Failed.
-				this.connectionInfoPack.getLoggable().logMessage("Error occured when waiting for a connection : " + e);
+				this.logger.error("Error occured when waiting for a connection", e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -88,7 +95,7 @@ public class ServerConnection extends Connection {
 			try {
 
 				// {@link ServerHandlerThread} that is about to handle the new client.
-				ServerHandlerThread client = new ServerHandlerThread(socket, this.connectionInfoPack.getLoggable());
+				ServerHandlerThread client = new ServerHandlerThread(socket);
 
 				// Save it in the ArrayList.
 				ServerRoom.getInstance().addClient(client);
@@ -99,7 +106,7 @@ public class ServerConnection extends Connection {
 			} catch (IOException e) {
 
 				// Failed.
-				this.connectionInfoPack.getLoggable().logMessage("Error occured when creating the streams or the socket is not connected " + e);
+				this.logger.error("Error occured when creating the streams or the socket is not connected", e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -139,7 +146,7 @@ public class ServerConnection extends Connection {
 	 */
 	private void establishConnection() throws IOException {
 		this.serverSocket = new ServerSocket(this.connectionInfoPack.getPortNumber());
-		this.connectionInfoPack.getLoggable().logMessage("Server waiting for Clients on port " + this.connectionInfoPack.getPortNumber());
+		this.logger.warn("Server waiting for Clients on port " + this.connectionInfoPack.getPortNumber());
 	}
 
 	/**
@@ -152,7 +159,7 @@ public class ServerConnection extends Connection {
 	 */
 	private void stopServer() throws IOException, InterruptedException {
 		// bye
-		this.connectionInfoPack.getLoggable().logMessage("Server will shut down.");
+		this.logger.warn("Server will shut down.");
 		
 		/*
 		 * 
