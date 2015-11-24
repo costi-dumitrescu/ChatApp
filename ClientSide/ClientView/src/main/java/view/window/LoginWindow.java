@@ -4,11 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import assistant.connection.Connection;
+import assistant.connection.ConnectionInfoPack;
+import view.NotifiableView;
 
 /**
  * The login view.
@@ -16,7 +24,7 @@ import javax.swing.JTextField;
  * @author costi.dumitrescu
  */
 public class LoginWindow extends Window {
-
+	
 	/**
 	 * Default serial version ID.
 	 */
@@ -59,8 +67,12 @@ public class LoginWindow extends Window {
 	
 	/**
 	 * Constructor.
+	 * 
+	 * @param connection The {@link Connection}
+	 * @param notifiable The {@link NotifiableView}
 	 */
-	public LoginWindow() {
+	public LoginWindow(Connection connection, NotifiableView notifiable) {
+		super(connection, notifiable);
 	}
 
 	/**
@@ -125,42 +137,47 @@ public class LoginWindow extends Window {
 		// Login Button
 		this.loginButton = new JButton("Login");
 		this.loginButton.setBounds(10, 80, 80, 25);
+		this.loginButton.addActionListener(new ActionListener() {
+			/**
+			 * @see java.awt.event.ActionListener.actionPerformed(ActionEvent)
+			 */
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Start the connection.
+				try {
+					LoginWindow.this.connection.start(LoginWindow.this.createConnectionInfoPack());
+					// If no exception has be thrown, it means the
+					// connection has been established, and the {@link ChatWindow}
+					// could be presented.
+					LoginWindow.this.notifiable.setWindow(WindowType.CHAT_WINDOW);
+				} catch (IOException | InterruptedException ex) {
+					// Not much we can do.
+					JOptionPane.showMessageDialog(LoginWindow.this, ex.getLocalizedMessage());
+				}
+			}
+		});
 		loginPanel.add(this.loginButton, BorderLayout.CENTER);
 	}
 	
 	/**
-	 * Returns the user-name.
+	 * Returns the {@link ConnectionInfoPack} used by the connection, and also
+	 * by the {@link ChatWindow}.
 	 * 
-	 * @return the user-name.
+	 * @return the {@link ConnectionInfoPack} used by the connection, and also
+	 *         by the {@link ChatWindow}.
 	 */
-	public String getUser() {
-		return userTextField.getText();
-	}
-
-	/**
-	 * Returns the server address.
-	 * 
-	 * @return the server address.
-	 */
-	public String getServerAddress() {
-		return serverAddressTextField.getText();
-	}
-	
-	/**
-	 * Returns the port number.
-	 * 
-	 * @return the port number.
-	 */
-	public int getPortNumber() {
-		return Integer.parseInt(portNumberTextField.getText());
-	}
-	
-	/**
-	 * Returns the login button.
-	 * 
-	 * @return the login button.
-	 */
-	public JButton getLoginButton() {
-		return loginButton;
+	private ConnectionInfoPack createConnectionInfoPack() {
+		ConnectionInfoPack connectionInfoPack = null;
+		if (this.userTextField != null && !"".equals(this.userTextField.getText()) && 
+			this.serverAddressTextField != null && !"".equals(this.serverAddressTextField.getText()) && 
+			this.portNumberTextField != null && !"".equals(this.portNumberTextField.getText())) {
+			
+			// Create the connection info pack.
+			connectionInfoPack = new ConnectionInfoPack.ConnectionInfoPackBuilder().build(
+					this.userTextField.getText(), 								// The user
+					this.serverAddressTextField.getText(), 						// The server addressport
+					Integer.parseInt(this.portNumberTextField.getText()));		// The port number
+		}
+		return connectionInfoPack;
 	}
 }

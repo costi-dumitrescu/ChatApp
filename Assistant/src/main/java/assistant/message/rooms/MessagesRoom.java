@@ -1,4 +1,4 @@
-package assistant.message.arrivals;
+package assistant.message.rooms;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +9,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * 
  * @author Costi.Dumitrescu
  */
-public abstract class MessagesRoom {
+public abstract class MessagesRoom<T> {
 
 	/**
 	 * List with messages from one side, to be read on the other side.
 	 * {@link ConcurrentLinkedQueue} would have been the best choice.
 	 */
-	protected List<String> messages;
+	protected List<T> messages;
 	
 	/**
 	 * Constructor
@@ -30,7 +30,7 @@ public abstract class MessagesRoom {
 	 * 
 	 * @param message The message.
 	 */
-	public void addMessage(String message) {
+	public void addMessage(T message) {
 		// Add the message in the list.`
 		this.messages.add(message);
 	}
@@ -40,7 +40,7 @@ public abstract class MessagesRoom {
 	 * 
 	 * @return the list with all messages.
 	 */
-	public List<String> getMessages() {
+	public List<T> getMessages() {
 		return this.messages;
 	}
 }

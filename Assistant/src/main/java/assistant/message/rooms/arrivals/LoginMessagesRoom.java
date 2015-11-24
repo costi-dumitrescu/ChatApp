@@ -1,11 +1,11 @@
-package assistant.message.arrivals;
+package assistant.message.rooms.arrivals;
 
 /**
  * {@link LoginMessagesRoom}
  * 
  * @author Costi.Dumitrescu
  */
-public class LoginMessagesRoom extends MessagesRoom {
+public class LoginMessagesRoom extends IncomingMessagesRoom {
 
 	/*
 	 * 
@@ -23,7 +23,7 @@ public class LoginMessagesRoom extends MessagesRoom {
 	 */
 	
 	/**
-	 * {@link MessagesRoom} Instance. Singleton purpose.
+	 * {@link IncomingMessagesRoom} Instance. Singleton purpose.
 	 */
 	protected static LoginMessagesRoom INSTANCE;
 	

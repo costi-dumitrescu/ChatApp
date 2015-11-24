@@ -13,11 +13,11 @@ import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
 import assistant.message.Messages;
-import assistant.message.arrivals.LoginMessagesRoom;
-import assistant.message.arrivals.LogoutMessagesRoom;
-import assistant.message.arrivals.NormalMessagesRoom;
-import assistant.message.arrivals.WhoisinMessagesRoom;
-import assistant.message.departures.ChatMessagesRoom;
+import assistant.message.rooms.arrivals.LoginMessagesRoom;
+import assistant.message.rooms.arrivals.LogoutMessagesRoom;
+import assistant.message.rooms.arrivals.NormalMessagesRoom;
+import assistant.message.rooms.arrivals.WhoisinMessagesRoom;
+import assistant.message.rooms.departures.OutgoingMessagesRoom;
 
 /**
  * {@link ClientHandlerThread} is a {@link HandlerThread} with additional tasks.
@@ -43,6 +43,12 @@ public class ClientHandlerThread extends HandlerThread {
 	}
 	
 	/**
+	 * This thread handles the client. There are actually two threads started by
+	 * this one. One of the two listens for messages from the server, and the
+	 * other sends messages. Both get notified or notifies 3rd party messages
+	 * room, and these rooms notify other threads that handles the information
+	 * presented on the UI.
+	 * 
 	 * @see java.lang.Runnable.run()
 	 */
 	@Override
@@ -50,7 +56,7 @@ public class ClientHandlerThread extends HandlerThread {
 		
 		// Let the views to synchronize them self.
 		try {
-			Thread.sleep(300);
+			Thread.sleep(100);
 		} catch (InterruptedException e1) {
 			// Not much we can do.
 		}
@@ -64,7 +70,6 @@ public class ClientHandlerThread extends HandlerThread {
 			 */
 			@Override
 			public void run() {
-				// WORK HARD.
 				try {
 					// Loop until the condition is no longer met. 
 					while (ClientHandlerThread.this.isConnectionOpened) {
@@ -111,9 +116,9 @@ public class ClientHandlerThread extends HandlerThread {
 				
 				// Wait until a message needs to be sent, doesn't matter what
 				// kind of message that is :
-				// - login message
-				// - normal message
-				// - logout message
+				// - login message	||
+				// - normal message || => ChatMessage is a wrapper class for all kind of messages.
+				// - logout message ||
 				// - etc.
 				
 				// This thread will rise from the ashes whenever it gets notified by the lockable object.
@@ -121,17 +126,17 @@ public class ClientHandlerThread extends HandlerThread {
 				
 				while (ClientHandlerThread.this.isConnectionOpened) {
 					// The lockable object to acquire lock on.
-					synchronized (ChatMessagesRoom.getInstance()) {
+					synchronized (OutgoingMessagesRoom.getInstance()) {
 						try {
-							ChatMessagesRoom.getInstance().wait();
+							OutgoingMessagesRoom.getInstance().wait();
 						}  catch (InterruptedException e) {
 							ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
 							continue;
 						}
 						// This thread could be released by mistake, so we have to check the size.
-						if(ChatMessagesRoom.getInstance().getChatMessages().size() > 0) {
+						if(OutgoingMessagesRoom.getInstance().getMessages().size() > 0) {
 							// Send all messages to the server.
-							for (ChatMessage chatMessage : ChatMessagesRoom.getInstance().getChatMessages()) {
+							for (ChatMessage chatMessage : OutgoingMessagesRoom.getInstance().getMessages()) {
 								System.err.println(Thread.currentThread().getName() + " in execution SENDING message : " + chatMessage);
 								try {
 									ClientHandlerThread.this.send(chatMessage);
@@ -141,7 +146,7 @@ public class ClientHandlerThread extends HandlerThread {
 								}
 							}
 							// Remove all chat messages.
-							ChatMessagesRoom.getInstance().getChatMessages().clear();
+							OutgoingMessagesRoom.getInstance().getMessages().clear();
 						}
 					}
 				}

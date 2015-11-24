@@ -2,16 +2,8 @@ package view;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-
-import javax.swing.JOptionPane;
-
-import org.apache.log4j.Logger;
 
 import assistant.connection.Connection;
-import assistant.connection.ConnectionInfoPack;
 import assistant.view.View;
 import view.window.ChatWindow;
 import view.window.LoginWindow;
@@ -23,10 +15,10 @@ import view.window.WindowType;
  * 
  * @author Costi.Dumitrescu
  */
-public class ClientView extends View {
+public class ClientView extends View implements NotifiableView {
 	
 	/**
-	 * The {@link Window} that is displayed in the {@link ClientView}
+	 * The {@link Window} that is displayed on the {@link ClientView}
 	 */
 	private Window window;
 
@@ -34,11 +26,6 @@ public class ClientView extends View {
 	 * Default serial version ID.
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	/**
-	 * {@link Logger} for logging
-	 */
-	final static Logger logger = Logger.getLogger(ClientView.class);
 	
 	/**
 	 * Constructor.
@@ -57,49 +44,25 @@ public class ClientView extends View {
 		// Set the Grid Bag Layout.
 		this.setLayout(new GridBagLayout());
 		// Login is the first window a user has to pass through.
-		this.initialize(WindowType.LOGIN_WINDOW);
+		this.setWindow(WindowType.LOGIN_WINDOW);
 	}
 	
 	/**
-	 * Initialize a specific type of the {@link Window} to be presented on the {@link View}.
 	 * 
-	 * @param windowType The type of the {@link Window} to be presented on the {@link View}.
+	 * 
+	 * @see view.Notifiable.setWindow(windowType)
 	 */
-	private void initialize(WindowType windowType) {
+	@Override
+	public void setWindow(WindowType windowType) {
 		// Create a specific type of {@link Window}
 		switch (windowType) {
 			case LOGIN_WINDOW:
-				final LoginWindow loginWindow = new LoginWindow();
-				loginWindow.getLoginButton().addActionListener(new ActionListener() {
-					/**
-					 * @see java.awt.event.ActionListener.actionPerformed(ActionEvent)
-					 */
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// Create a connection info pack.
-						ConnectionInfoPack connectionInfoPack = new ConnectionInfoPack.ConnectionInfoPackBuilder().build(
-								loginWindow.getUser(), 				// The user
-								loginWindow.getServerAddress(), 	// The server addressport
-								loginWindow.getPortNumber());		// The port number
-
-						// Start the connection.
-						try {
-							ClientView.this.connection.start(connectionInfoPack);
-							// If no exception has be thrown, it means the
-							// connection has been established, and the {@link ChatWindow}
-							// could be presented.
-							ClientView.this.initialize(WindowType.CHAT_WINDOW);
-						} catch (IOException | InterruptedException ex) {
-							// Not much we can do.
-							JOptionPane.showMessageDialog(ClientView.this, ex.getLocalizedMessage());
-						}
-					}
-				});
+				final LoginWindow loginWindow = new LoginWindow(ClientView.this.connection, ClientView.this);
 				// Activate the window.
 				this.activate(loginWindow);
 				break;
 			case CHAT_WINDOW:
-				final ChatWindow chatWindow = new ChatWindow();
+				final ChatWindow chatWindow = new ChatWindow(ClientView.this.connection, ClientView.this);
 				// Activate the window.
 				this.activate(chatWindow);
 				break;
@@ -107,7 +70,7 @@ public class ClientView extends View {
 				break;
 		}
 	}
-
+	
 	/**
 	 * After a a {@link Window} has been changed, we need to repaint the panel
 	 * and to validate the changes.

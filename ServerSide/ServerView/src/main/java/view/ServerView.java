@@ -13,13 +13,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import org.apache.log4j.Logger;
-
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
-import assistant.message.arrivals.LoginMessagesRoom;
-import assistant.message.arrivals.LogoutMessagesRoom;
-import assistant.message.arrivals.WhoisinMessagesRoom;
+import assistant.message.rooms.arrivals.LoginMessagesRoom;
+import assistant.message.rooms.arrivals.LogoutMessagesRoom;
+import assistant.message.rooms.arrivals.WhoisinMessagesRoom;
 import assistant.view.View;
 
 /**
@@ -29,11 +27,6 @@ import assistant.view.View;
  */
 public class ServerView extends View {
 
-	/**
-	 * Logger for logging
-	 */
-	final static Logger logger = Logger.getLogger(ServerView.class);
-	
 	/**
 	 * Default serial version.
 	 */

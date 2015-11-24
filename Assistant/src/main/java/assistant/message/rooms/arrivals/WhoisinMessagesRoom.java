@@ -1,11 +1,11 @@
-package assistant.message.arrivals;
+package assistant.message.rooms.arrivals;
 
 /**
  * {@link WhoisinMessagesRoom}
  * 
  * @author Costi.Dumitrescu
  */
-public class WhoisinMessagesRoom extends MessagesRoom {
+public class WhoisinMessagesRoom extends IncomingMessagesRoom {
 
 	/**
 	 * {@link WhoisinMessagesRoom} Instance. Singleton purpose.

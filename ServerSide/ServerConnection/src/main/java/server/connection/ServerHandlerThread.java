@@ -13,9 +13,9 @@ import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
 import assistant.message.Messages;
-import assistant.message.arrivals.LoginMessagesRoom;
-import assistant.message.arrivals.LogoutMessagesRoom;
-import assistant.message.arrivals.WhoisinMessagesRoom;
+import assistant.message.rooms.arrivals.LoginMessagesRoom;
+import assistant.message.rooms.arrivals.LogoutMessagesRoom;
+import assistant.message.rooms.arrivals.WhoisinMessagesRoom;
 
 /**
  * {@link ServerHandlerThread} is a {@link HandlerThread} with additional tasks. 

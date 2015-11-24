@@ -2,9 +2,9 @@ package view.window;
 
 import javax.swing.JPanel;
 
-import org.apache.log4j.Logger;
-
+import assistant.connection.Connection;
 import assistant.view.View;
+import view.NotifiableView;
 
 /**
  * {@link Window} to be presented on a {@link View}.
@@ -14,19 +14,29 @@ import assistant.view.View;
 public abstract class Window extends JPanel {
 	
 	/**
-	 * Logger for logging
-	 */
-	final static Logger logger = Logger.getLogger(Window.class);
-	
-	/**
 	 * Default serial version ID.
 	 */
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Constructor.
+	 * The {@link NotifiableView}
 	 */
-	public Window() {
+	protected NotifiableView notifiable;
+	
+	/**
+	 * The {@link Connection} 
+	 */
+	protected Connection connection;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param connection The {@link Connection}
+	 * @param notifiable The {@link NotifiableView}
+	 */
+	public Window(Connection connection, NotifiableView notifiable) {
+		this.connection = connection;
+		this.notifiable = notifiable;
 		this.initialize();
 	}
 	

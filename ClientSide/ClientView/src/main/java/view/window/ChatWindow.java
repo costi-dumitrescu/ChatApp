@@ -18,15 +18,17 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.xml.parsers.ParserConfigurationException;
 
+import assistant.connection.Connection;
 import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
 import assistant.message.Messages;
-import assistant.message.arrivals.LoginMessagesRoom;
-import assistant.message.arrivals.LogoutMessagesRoom;
-import assistant.message.arrivals.NormalMessagesRoom;
-import assistant.message.arrivals.WhoisinMessagesRoom;
-import assistant.message.departures.ChatMessagesRoom;
+import assistant.message.rooms.arrivals.LoginMessagesRoom;
+import assistant.message.rooms.arrivals.LogoutMessagesRoom;
+import assistant.message.rooms.arrivals.NormalMessagesRoom;
+import assistant.message.rooms.arrivals.WhoisinMessagesRoom;
+import assistant.message.rooms.departures.OutgoingMessagesRoom;
+import view.NotifiableView;
 
 /**
  * The main view.
@@ -70,23 +72,27 @@ public class ChatWindow extends Window {
 
 	/**
 	 * Constructor.
+	 * 
+	 * @param connection The {@link Connection}
+	 * @param notifiable The {@link NotifiableView}
 	 */
-	public ChatWindow() {
+	public ChatWindow(Connection connection, NotifiableView notifiable) {
+		super(connection, notifiable);
 		
 		// GO
 		this.isConnectionOpened = true;
 		
 		// login messages listener thread.
-		this.createListenerThreadForLoginMessages();
+		this.createListenerThreadForIncomingLoginMessages();
 		
 		// messages listener thread.
-		this.createListenerThreadForMessages();
+		this.createListenerThreadForIncomingMessages();
 		
 		// users listener thread.
-		this.createListenerThreadForUsers();
+		this.createListenerThreadForIncomingUsers();
 		
 		// logout messages listener thread.
-		this.createListenerThreadForLogoutMessages();
+		this.createListenerThreadForIncomingLogoutMessages();
 	}
 
 	/**
@@ -211,7 +217,7 @@ public class ChatWindow extends Window {
 	 * This thread listens on the {@link LoginMessagesRoom} list and update the
 	 * chat text area.
 	 */
-	private void createListenerThreadForLoginMessages() {
+	private void createListenerThreadForIncomingLoginMessages() {
 		// create a new thread to handle this.
 		new Thread("Listener-Thread-For-Login-Messages") {
 			/**
@@ -252,7 +258,7 @@ public class ChatWindow extends Window {
 	 * This thread listens on the {@link NormalMessagesRoom} list and update the
 	 * chat text area.
 	 */
-	private void createListenerThreadForMessages() {
+	private void createListenerThreadForIncomingMessages() {
 		// create a new thread to handle this.
 		new Thread("Listener-Thread-For-Messages") {
 			/**
@@ -293,7 +299,7 @@ public class ChatWindow extends Window {
 	 * This thread listens on the {@link WhoisinMessagesRoom} list and update the
 	 * users table.
 	 */
-	private void createListenerThreadForUsers() {
+	private void createListenerThreadForIncomingUsers() {
 		// create a new thread to handle this.
 		new Thread("Listener-Thread-For-Users") {
 			/**
@@ -363,7 +369,7 @@ public class ChatWindow extends Window {
 	 * This thread listens on the {@link LogoutMessagesRoom} list and update the
 	 * chat text area.
 	 */
-	private void createListenerThreadForLogoutMessages() {
+	private void createListenerThreadForIncomingLogoutMessages() {
 		// create a new thread to handle this.
 		new Thread() {
 			/**
@@ -430,11 +436,11 @@ public class ChatWindow extends Window {
 						// Not much we can do.
 					}
 					// The chosen lockable object
-					synchronized (ChatMessagesRoom.getInstance()) {
+					synchronized (OutgoingMessagesRoom.getInstance()) {
 						// Add the message
-						ChatMessagesRoom.getInstance().getChatMessages().add(normalMessage);
+						OutgoingMessagesRoom.getInstance().getMessages().add(normalMessage);
 						// Notify the waiter
-						ChatMessagesRoom.getInstance().notify();
+						OutgoingMessagesRoom.getInstance().notify();
 					}
 				}
 			}.start();
