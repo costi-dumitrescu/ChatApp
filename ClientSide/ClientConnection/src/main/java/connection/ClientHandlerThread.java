@@ -2,6 +2,8 @@ package connection;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -62,7 +64,7 @@ public class ClientHandlerThread extends HandlerThread {
 		}
 		
 		/*
-		 * Listener thread.
+		 * Listener-From-The-Server-Thread.
 		 */
 		new Thread("Listener-From-The-Server-Thread") {
 			/**
@@ -90,16 +92,14 @@ public class ClientHandlerThread extends HandlerThread {
 				}
 			};
 		}.start();
+		
 		/*
-		 *  Sender thread.
+		 * Login executor.
 		 */
-		new Thread("Sender-To-The-Server-Thread") {
-			/**
-			 * @see java.lang.Runnable.run()
-			 */
-			@Override
-			public void run() {
-				try {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService.execute(new Runnable() {
+		    public void run() {
+		    	try {
 					// Send LOGIN message.
 					ChatMessage loginMessage = MessageHandler.getInstance().createMessage(MessageType.LOGIN, ClientHandlerThread.this.user, Messages.USER_IN);
 					ClientHandlerThread.this.send(loginMessage);
@@ -113,6 +113,19 @@ public class ClientHandlerThread extends HandlerThread {
 						ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), ioe);
 					}
 				}
+		    }
+		});
+		executorService.shutdown();
+		
+		/*
+		 * Sender-To-The-Server-Thread.
+		 */
+		new Thread("Sender-To-The-Server-Thread") {
+			/**
+			 * @see java.lang.Runnable.run()
+			 */
+			@Override
+			public void run() {
 				
 				// Wait until a message needs to be sent, doesn't matter what
 				// kind of message that is :
