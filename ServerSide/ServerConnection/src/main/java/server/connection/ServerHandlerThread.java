@@ -15,6 +15,7 @@ import assistant.message.MessageType;
 import assistant.message.Messages;
 import assistant.message.rooms.arrivals.LoginMessagesRoom;
 import assistant.message.rooms.arrivals.LogoutMessagesRoom;
+import assistant.message.rooms.arrivals.NormalMessagesRoom;
 import assistant.message.rooms.arrivals.WhoisinMessagesRoom;
 
 /**
@@ -38,7 +39,7 @@ public class ServerHandlerThread extends HandlerThread {
 	}
 
 	/**
-	 * @see java.lang.Thread.run()
+	 * @see java.lang.Runnable.run()
 	 */
 	@Override
 	public void run() {
@@ -125,8 +126,12 @@ public class ServerHandlerThread extends HandlerThread {
 	 */
 	public void handleMessage(String user, String message) throws IOException, ParserConfigurationException {
 		
-		// We shouldn't log the message on the screen. This is just a regularly message.
-		
+		// Log the message so they could be stored in the Data Base.
+		// Notify the the {@link PersistentHandler} to do so.
+		synchronized (NormalMessagesRoom.getInstance()) {
+			NormalMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			NormalMessagesRoom.getInstance().notify();
+		}
 		
 		/*
 		 * 

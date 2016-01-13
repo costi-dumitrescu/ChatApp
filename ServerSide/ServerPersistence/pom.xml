@@ -6,17 +6,17 @@
 		<artifactId>ServerSide</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>ServerConnection</artifactId>
+	<artifactId>ServerPersistence</artifactId>
 
 	<dependencies>
 		<dependency>
-			<groupId>ChatApp</groupId>
-			<artifactId>Assistant</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.1-901-1.jdbc4</version>
 		</dependency>
 		<dependency>
 			<groupId>ChatApp</groupId>
-			<artifactId>ServerPersistence</artifactId>
+			<artifactId>Assistant</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

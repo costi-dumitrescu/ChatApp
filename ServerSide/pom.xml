@@ -12,5 +12,6 @@
 		<module>ServerConnection</module>
 		<module>ServerView</module>
 		<module>ServerLauncher</module>
+		<module>ServerPersistence</module>
 	</modules>
 </project>

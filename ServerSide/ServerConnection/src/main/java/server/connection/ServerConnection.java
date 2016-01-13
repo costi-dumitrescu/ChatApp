@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
+import server.persistence.PersistenceHandler;
 
 /**
  * {@link ServerConnection}
@@ -58,7 +59,10 @@ public class ServerConnection extends Connection {
 		
 		// Try to create the server socket.
 		this.establishConnection();
-
+		
+		// Start the thread that persists things in Data Base.
+		PersistenceHandler.getInstance().start();
+		
 		// Go.
 		this.isConnectionOpened = true;
 
@@ -128,6 +132,9 @@ public class ServerConnection extends Connection {
 			
 			// Connection will be closed. The loop will be stopped.
 			this.isConnectionOpened = false;
+			
+			// Stop the thread that persists things in Data Base.
+			PersistenceHandler.getInstance().stop();
 
 			// Mock-up a connection to the server as a client so the thread that
 			// is waiting for a new socket will pass the accept method, 
