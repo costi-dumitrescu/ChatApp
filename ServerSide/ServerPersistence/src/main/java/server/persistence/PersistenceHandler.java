@@ -100,8 +100,18 @@ public class PersistenceHandler {
 									// user : message
 									String[] splited = message.split(Messages.SEPARATOR);
 									
-									Persistence.getInstance().insertMessageCallableStatement(splited[0], splited[1], new Date().toString());
-									//Persistence.getInstance().displayHistorySimpleStatement();
+									/**********************************************************************************************************/
+									
+									// Persistence.getInstance().insertMessageSimpleStatement(splited[0], splited[1], new Date().toString());
+									// Persistence.getInstance().insertMessagePreparedStatement(splited[0], splited[1], new Date().toString());
+									// Persistence.getInstance().insertMessageCallableStatement(splited[0], splited[1], new Date().toString());
+									
+									// Persistence.getInstance().displayHistorySimpleStatement();
+									// Persistence.getInstance().displayHistoryPreparedStatement();
+									Persistence.getInstance().displayHistoryCallableStatement();
+									
+									/**********************************************************************************************************/
+									
 								}	
 								// Remove all messages.
 								NormalMessagesRoom.getInstance().getMessages().clear();

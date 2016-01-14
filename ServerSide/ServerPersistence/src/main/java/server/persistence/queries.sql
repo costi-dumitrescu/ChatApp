@@ -28,12 +28,14 @@ DROP FUNCTION addEntryInHistoryTable(text,text,date)
 SELECT addEntryInHistoryTable('Costi1', 'mesajul meu foooooaaaarte luuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuung', 'Tue Jan 12 09:50:27 EET 2016');
 SELECT addEntryInHistoryTable('Costi2', '\};|#@!', 'Tue Jan 12 09:50:27 EET 2016');
 SELECT addEntryInHistoryTable('Costi3', '\};|#@!', 'Tue Jan 12 09:50:27 EET 2016');
-SELECT addEntryInHistoryTable('Costi4', '\};|#@!', 'Tue Jan 12 09:50:27 EET 2016');.
+SELECT addEntryInHistoryTable('Costi4', '\};|#@!', 'Tue Jan 12 09:50:27 EET 2016');
 SELECT addEntryInHistoryTable('Costi5', '\};|#@!', 'Tue Jan 12 09:50:27 EET 2016');
 
 /* Store procedure that displays everything in the ChatHistory table. */
 /* To return one or more result sets (cursors in terms of PostgreSQL), you have to use refcursor return type. */
-CREATE OR REPLACE FUNCTION displayAllEntriesInHistoryTable(ref refcursor) RETURNS refcursor AS $$
+CREATE OR REPLACE FUNCTION displayAllEntriesInHistoryTable() RETURNS refcursor AS $$
+	DECLARE	
+		ref refcursor;
 	BEGIN
 		OPEN ref FOR SELECT * FROM ChatHistory; /* Open the cursor */
 		RETURN ref;                             /* Return the cursor to the caller */
@@ -42,10 +44,14 @@ CREATE OR REPLACE FUNCTION displayAllEntriesInHistoryTable(ref refcursor) RETURN
 
 /* DROP the stored procedur. */
 DROP FUNCTION displayAllEntriesInHistoryTable(refcursor) 
+DROP FUNCTION displayAllEntriesInHistoryTable() 
+
+SELECT displayAllEntriesInHistoryTable();
+
 
 /* Example to  call the displayAllEntriesInHistoryTable procedure. */
 /* Start a transaction. */
 BEGIN;
-	SELECT displayAllEntriesInHistoryTable('history_cursor');
+	SELECT displayAllEntriesInHistoryTable("history_cursor");
 	FETCH ALL IN "history_cursor";
 COMMIT;

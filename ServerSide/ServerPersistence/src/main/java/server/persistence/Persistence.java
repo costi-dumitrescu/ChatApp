@@ -244,6 +244,7 @@ public class Persistence {
 			callableStatement.setString(3, t_time);
 			// execute the query.
 			callableStatement.executeUpdate();
+			callableStatement.close();
 		} catch (SQLException e) {
 			logger.error("Failed to insert new message with callable statement : '" + t_username + ", " + t_message
 					+ ", " + t_time + "' in Data Base. Error Message : " + e.getLocalizedMessage());
@@ -274,6 +275,68 @@ public class Persistence {
 			statement.close();
 		} catch (SQLException e) {
 			logger.error("Failed to display history with simple statement. Error Message : " + e.getLocalizedMessage());
+		}
+	}
+	
+	/**
+	 * Displays all entries in the chat history table using prepared statement
+	 */
+	public void displayHistoryPreparedStatement() {
+		// The object used for executing a prepared statement and returning
+		// the results it produces.
+		PreparedStatement preparedStatement = null;
+		try {
+			String sql = "Select * from ChatHistory Where t_id = ?";
+			// Create the statement.
+			preparedStatement = this.connection.prepareStatement(sql);
+			preparedStatement.setInt(1, 3);
+			ResultSet rs = preparedStatement.executeQuery();
+			while(rs.next()) {
+				// JUST FOR FUN
+				int id = rs.getInt(1);
+				String user = rs.getString(2);
+				String message = rs.getString(3);
+				String time = rs.getString(4);
+				System.out.println("Id : " + id + ", User : " + user + ", Message : " + message + ", Time : " + time);
+			}
+			rs.close();
+			preparedStatement.close();
+		} catch (SQLException e) {
+			logger.error("Failed to display history with prepared statement. Error Message : " + e.getLocalizedMessage());
+		}
+	}
+	
+	/**
+	 * Displays all entries in the chat history table using prepared statement
+	 */
+	public void displayHistoryCallableStatement() {
+		// The object used for executing a SQL callable statement and returning
+		// the results it produces.
+		CallableStatement callableStatement = null;
+		try {
+			// We must be inside a transaction for cursors to work.
+			this.connection.setAutoCommit(false);
+			String sql = "{? = call displayAllEntriesInHistoryTable()}";
+			// Create the callable statement.
+			callableStatement = this.connection.prepareCall(sql);
+			// Bind OUT parameters.
+			callableStatement.registerOutParameter(1, java.sql.Types.OTHER);
+			// Execute the query.
+			callableStatement.execute();
+			// Retrieve
+			ResultSet rs = (ResultSet) callableStatement.getObject(1);
+			while(rs.next()) {
+				// JUST FOR FUN
+				int id = rs.getInt(1);
+				String user = rs.getString(2);
+				String message = rs.getString(3);
+				String time = rs.getString(4);
+				System.out.println("Id : " + id + ", User : " + user + ", Message : " + message + ", Time : " + time);
+			}
+			rs.close();
+			callableStatement.close();
+		} catch (SQLException e) {
+			logger.error("Failed to display history with callable statement. Error Message : " + e.getLocalizedMessage());
 		}
 	}
 }
