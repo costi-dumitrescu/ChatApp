@@ -76,18 +76,17 @@ public class ClientHandlerThread extends HandlerThread {
 					// Loop until the condition is no longer met. 
 					while (ClientHandlerThread.this.isConnectionOpened) {
 						ChatMessage chatMessage = (ChatMessage) ClientHandlerThread.this.objectInputStream.readObject();
-						System.err.println(Thread.currentThread().getName() + " in execution RECEIVING message : " + chatMessage);
 						// Ask the {@link MessageHandler} to handle the message.
 						MessageHandler.getInstance().handleMessage(ClientHandlerThread.this, chatMessage);
 					}
 				} catch (DOMException | ClassNotFoundException | IOException | ParserConfigurationException e) {
-					ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
+					ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : " , e);
 					// The handler thread has terminated.
 					// It has to clear rubbish.
 					try {
 						ClientHandlerThread.this.stopClient();
 					} catch (IOException ioe) {
-						ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), ioe);
+						ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", ioe);
 					}
 				}
 			};
@@ -104,13 +103,13 @@ public class ClientHandlerThread extends HandlerThread {
 					ChatMessage loginMessage = MessageHandler.getInstance().createMessage(MessageType.LOGIN, ClientHandlerThread.this.user, Messages.USER_IN);
 					ClientHandlerThread.this.send(loginMessage);
 				} catch (ParserConfigurationException | IOException e) {
-					ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
+					ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", e);
 					// The handler thread has terminated.
 					// It has to clear rubbish
 					try {
 						ClientHandlerThread.this.stopClient();
 					} catch (IOException ioe) {
-						ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), ioe);
+						ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", ioe);
 					}
 				}
 		    }
@@ -143,7 +142,7 @@ public class ClientHandlerThread extends HandlerThread {
 						try {
 							OutgoingMessagesRoom.getInstance().wait();
 						}  catch (InterruptedException e) {
-							ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
+							ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", e);
 							continue;
 						}
 						// This thread could be released by mistake, so we have to check the size.
@@ -154,7 +153,7 @@ public class ClientHandlerThread extends HandlerThread {
 								try {
 									ClientHandlerThread.this.send(chatMessage);
 								} catch (IOException e) {
-									ClientHandlerThread.this.logger.error(Messages.EXCEPTION_IN_CLIENT_THREAD + this.hashCode(), e);
+									ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", e);
 									continue;
 								}
 							}

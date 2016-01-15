@@ -239,7 +239,6 @@ public class ChatWindow extends Window {
 						if(LoginMessagesRoom.getInstance().getMessages().size() > 0) {
 							// Loop through all messages (even if at the list will have only one message at any time)
 							for (String message : LoginMessagesRoom.getInstance().getMessages()) {
-								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
 								// Append message in the chat text area.
 								ChatWindow.this.chatTextArea.append(message + "\n");
 								// Put the caret at the end.
@@ -280,7 +279,6 @@ public class ChatWindow extends Window {
 						if(NormalMessagesRoom.getInstance().getMessages().size() > 0) {
 							// Loop through all messages (even if at the list will have only one message at any time)
 							for (String message : NormalMessagesRoom.getInstance().getMessages()) {
-								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
 								// Append message in the chat text area.
 								ChatWindow.this.chatTextArea.append(message + "\n");
 								// Put the caret at the end.
@@ -322,7 +320,6 @@ public class ChatWindow extends Window {
 							// Loop through all messages (even if at the list will have only one message at any time)
 							// A message represents the list of users, separated by comma.
 							for (String message : WhoisinMessagesRoom.getInstance().getMessages()) {
-								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
 								ChatWindow.this.removeAllUsers();
 								String[] users = message.split(Messages.COMMA);
 								for (String user : users) {
@@ -391,7 +388,6 @@ public class ChatWindow extends Window {
 						if(LogoutMessagesRoom.getInstance().getMessages().size() > 0) {
 							// Loop through all messages (even if at the list will have only one message at any time)
 							for (String message : LogoutMessagesRoom.getInstance().getMessages()) {
-								System.err.println(Thread.currentThread().getName() + " in execution with message : " + message);
 								// Append message in the chat text area.
 								ChatWindow.this.chatTextArea.append(message + "\n");
 								// Put the caret at the end.

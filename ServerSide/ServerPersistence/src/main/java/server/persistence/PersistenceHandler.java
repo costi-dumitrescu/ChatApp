@@ -1,7 +1,5 @@
 package server.persistence;
 
-import java.util.Date;
-
 import assistant.message.Messages;
 import assistant.message.rooms.arrivals.NormalMessagesRoom;
 

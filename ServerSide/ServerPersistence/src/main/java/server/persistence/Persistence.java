@@ -119,6 +119,11 @@ public class Persistence {
      *             malformed Unicode escape sequence.
 	 */
 	private void loadCredentials() throws IOException {
+		/*
+		 * Loading the credentials file.
+		 */
+		logger.warn("Loading the credentials file...");
+		
 		this.credentials = new Properties();
 		InputStream in = this.getClass().getResourceAsStream("credentials.properties");
 		try {
@@ -155,7 +160,7 @@ public class Persistence {
 		/*
 		 * Open a connection.
 		 */
-		logger.warn("Connecting to database...");
+		logger.warn("Connecting to the database...");
 		
 		String user     = (String) this.credentials.get("user");
 		String password = (String)  this.credentials.get("password");

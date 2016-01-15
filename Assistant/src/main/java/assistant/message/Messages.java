@@ -17,9 +17,6 @@ public interface Messages {
 	// Comma separation for each client packed in a message.
 	String COMMA = ",";
 	
-	// Exception in client thread
-	String EXCEPTION_IN_CLIENT_THREAD = "Exception in client thread";
-	
 	// Separator
 	String SEPARATOR = " : ";
 }
