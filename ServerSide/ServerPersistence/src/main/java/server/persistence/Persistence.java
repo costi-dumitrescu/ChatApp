@@ -42,11 +42,6 @@ public class Persistence {
 	private static Persistence INSTANCE = null;
 	
 	/**
-	 * POSTGRESQL Driver main class.
-	 */
-	public static final String DRIVER = "org.postgresql.Driver";
-	
-	/**
 	 * A connection (session) with a specific database. SQL statements are
 	 * executed and results are returned within the context of a connection.
 	 */
@@ -67,24 +62,21 @@ public class Persistence {
 	public static synchronized Persistence getInstance() {
 		if (INSTANCE == null) {
 			try {
-				registerJdbcDriver();
 				INSTANCE = new Persistence();
 				INSTANCE.loadCredentials();
+				INSTANCE.registerJdbcDriver();
 				INSTANCE.establishConnection();
 			} catch (ClassNotFoundException e) {
-				String message1 = ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedRegisteringTheDriver");
-				String message2 = ResourceBundleHandler.getInstance().getResourceBundle().getString("NoMessageWillBePersistedInTheDataBaseForThisSession");
-				logger.error(message1 + " " + message2);
+				logger.error(ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedRegisteringTheDriver") + " " + 
+							 ResourceBundleHandler.getInstance().getResourceBundle().getString("NoMessageWillBePersistedInTheDataBaseForThisSession"));
 				INSTANCE = null;
 			} catch (IOException e) {
-				String message1 = ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedLoadingTheCredentialsFile");
-				String message2 = ResourceBundleHandler.getInstance().getResourceBundle().getString("NoMessageWillBePersistedInTheDataBaseForThisSession");
-				logger.error(message1 + " " + message2);
+				logger.error(ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedLoadingTheCredentialsFile") + " " + 
+						 	 ResourceBundleHandler.getInstance().getResourceBundle().getString("NoMessageWillBePersistedInTheDataBaseForThisSession"));
 				INSTANCE = null;
 			} catch (SQLException e) {
-				String message1 = ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedEstablishingAConnectionWithTheDataBase");
-				String message2 = ResourceBundleHandler.getInstance().getResourceBundle().getString("NoMessageWillBePersistedInTheDataBaseForThisSession");
-				logger.error(message1 + " " + message2);
+				logger.error(ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedEstablishingAConnectionWithTheDataBase") + " " + 
+					 	 ResourceBundleHandler.getInstance().getResourceBundle().getString("NoMessageWillBePersistedInTheDataBaseForThisSession"));
 				INSTANCE = null;
 			}
 		}
@@ -109,15 +101,15 @@ public class Persistence {
      *            by this method fails
      * @exception ClassNotFoundException if the class cannot be located
 	 */
-	private static void registerJdbcDriver() throws ClassNotFoundException {
+	private void registerJdbcDriver() throws ClassNotFoundException {
 		
 		/*
 		 * Register the JDBC driver.
 		 */
-		String message = ResourceBundleHandler.getInstance().getResourceBundle().getString("RegisteringTheJDBCDriver");
-		logger.warn(message);
+		logger.warn(ResourceBundleHandler.getInstance().getResourceBundle().getString("RegisteringTheJDBCDriver"));
 
-		Class.forName(DRIVER);
+		String drive = (String) this.credentials.get("driver");
+		Class.forName(drive);
 	}
 	
 	/**
@@ -132,8 +124,7 @@ public class Persistence {
 		/*
 		 * Loading the credentials file.
 		 */
-		String message = ResourceBundleHandler.getInstance().getResourceBundle().getString("LoadingTheCredentialsFile");
-		logger.warn(message);
+		logger.warn(ResourceBundleHandler.getInstance().getResourceBundle().getString("LoadingTheCredentialsFile"));
 		
 		this.credentials = new Properties();
 		InputStream in = this.getClass().getResourceAsStream("credentials.properties");
@@ -171,10 +162,9 @@ public class Persistence {
 		/*
 		 * Open a connection.
 		 */
-		String message = ResourceBundleHandler.getInstance().getResourceBundle().getString("ConnectingToTheDatabase");
-		logger.warn(message);
+		logger.warn(ResourceBundleHandler.getInstance().getResourceBundle().getString("ConnectingToTheDatabase"));
 		
-		String user     = (String) this.credentials.get("user");
+		String user     = (String)  this.credentials.get("user");
 		String password = (String)  this.credentials.get("password");
 		String db_url   = (String)  this.credentials.get("db_url");
 		
@@ -184,8 +174,7 @@ public class Persistence {
 		this.connection = DriverManager.getConnection(db_url, user, password);
 		
 		// Connection is established.
-		String message2 = ResourceBundleHandler.getInstance().getResourceBundle().getString("ConnectionEstablished");
-		logger.warn(message2);
+		logger.warn(ResourceBundleHandler.getInstance().getResourceBundle().getString("ConnectionEstablished"));
 	}
 	
 	/**
@@ -208,11 +197,9 @@ public class Persistence {
 			statement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-			
-			String message1 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
-					.getString("FailedToInsertNewMessageWithSimpleStatement"), t_username, t_message, t_time);
-			String message2 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage());
-			logger.error(message1 + " " + message2);
+			logger.error(MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+						 .getString("FailedToInsertNewMessageWithSimpleStatement"), t_username, t_message, t_time) + " " + 
+						 MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage()));
 		}
 	}
 
@@ -240,11 +227,9 @@ public class Persistence {
 			preparedStatement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-
-			String message1 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
-					.getString("FailedToInsertNewMessageWithPreparedStatement"), t_username, t_message, t_time);
-			String message2 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage());
-			logger.error(message1 + " " + message2);
+			logger.error(MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+						 .getString("FailedToInsertNewMessageWithPreparedStatement"), t_username, t_message, t_time) + " " + 
+						  MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage()));
 		}
 	}
 	
@@ -272,11 +257,9 @@ public class Persistence {
 			callableStatement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-
-			String message1 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
-					.getString("FailedToInsertNewMessageWithCallableStatement"), t_username, t_message, t_time);
-			String message2 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage());
-			logger.error(message1 + " " + message2);
+			logger.error(MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+						 .getString("FailedToInsertNewMessageWithCallableStatement"), t_username, t_message, t_time) + " " +  
+						 MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage()));
 		}
 	}
 	
@@ -304,10 +287,8 @@ public class Persistence {
 			statement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-			
-			String message1 = ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedToDisplayHistoryWithSimpleStatement");
-			String message2 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage());
-			logger.error(message1 + " " + message2);
+			logger.error(ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedToDisplayHistoryWithSimpleStatement") + " " + 
+						 MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage()));
 		}
 	}
 	
@@ -336,10 +317,8 @@ public class Persistence {
 			preparedStatement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-			
-			String message1 = ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedToDisplayHistoryWithPreparedStatement");
-			String message2 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage());
-			logger.error(message1 + " " + message2);
+			logger.error(ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedToDisplayHistoryWithPreparedStatement") + " " + 
+						 MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage()));
 		}
 	}
 	
@@ -374,10 +353,8 @@ public class Persistence {
 			callableStatement.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-			
-			String message1 = ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedToDisplayHistoryWithCallableStatement");
-			String message2 = MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage());
-			logger.error(message1 + " " + message2);
+			logger.error(ResourceBundleHandler.getInstance().getResourceBundle().getString("FailedToDisplayHistoryWithCallableStatement") + " " + 
+						 MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorMessage"),e.getLocalizedMessage()));
 		}
 	}
 }
