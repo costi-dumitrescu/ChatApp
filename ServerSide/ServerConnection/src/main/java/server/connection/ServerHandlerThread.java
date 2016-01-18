@@ -2,6 +2,7 @@ package server.connection;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.text.MessageFormat;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -9,10 +10,10 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.DOMException;
 
 import assistant.handler.HandlerThread;
+import assistant.i18n.ResourceBundleHandler;
 import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
-import assistant.message.Messages;
 import assistant.message.rooms.arrivals.LoginMessagesRoom;
 import assistant.message.rooms.arrivals.LogoutMessagesRoom;
 import assistant.message.rooms.arrivals.NormalMessagesRoom;
@@ -53,13 +54,17 @@ public class ServerHandlerThread extends HandlerThread {
 				MessageHandler.getInstance().handleMessage(this, message);
 			}
 		} catch (DOMException | ClassNotFoundException | IOException | ParserConfigurationException e) {
-			ServerHandlerThread.this.logger.error("Exception in client thread : " + this.hashCode(), e);
+			ServerHandlerThread.this.logger.error(MessageFormat.format(
+					ResourceBundleHandler.getInstance().getResourceBundle().getString("ExceptionInClientThread"),
+					this.hashCode()), e);
 			// The handler thread has terminated.
 			// It has to remove himself from the room of clients.
 			try {
 				ServerRoom.getInstance().removeClient(ServerHandlerThread.this);
 			} catch (IOException ioe) {
-				ServerHandlerThread.this.logger.error("Exception removing client : " + this.hashCode(), ioe);
+				ServerHandlerThread.this.logger.error(MessageFormat.format(
+						ResourceBundleHandler.getInstance().getResourceBundle().getString("ExceptionRemovingClient"),
+						this.hashCode()), ioe);
 			}
 		}
 	}
@@ -71,7 +76,7 @@ public class ServerHandlerThread extends HandlerThread {
 		
 		// Log the message - Give a sign a login message has arrived.
 		synchronized (LoginMessagesRoom.getInstance()) {
-			LoginMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LoginMessagesRoom.getInstance().addMessage(user + " : " + message);
 			LoginMessagesRoom.getInstance().notify();
 		}
 		
@@ -129,7 +134,7 @@ public class ServerHandlerThread extends HandlerThread {
 		// Log the message so they could be stored in the Data Base.
 		// Notify the the {@link PersistentHandler} to do so.
 		synchronized (NormalMessagesRoom.getInstance()) {
-			NormalMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			NormalMessagesRoom.getInstance().addMessage(user + " : " + message);
 			NormalMessagesRoom.getInstance().notify();
 		}
 		
@@ -150,7 +155,7 @@ public class ServerHandlerThread extends HandlerThread {
 
 		// Log the message - Give a sign a logout message has arrived.
 		synchronized (LogoutMessagesRoom.getInstance()) {
-			LogoutMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LogoutMessagesRoom.getInstance().addMessage(user + " : " + message);
 			LogoutMessagesRoom.getInstance().notify();
 		}
 		

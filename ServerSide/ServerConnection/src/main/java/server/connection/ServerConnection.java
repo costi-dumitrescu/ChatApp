@@ -3,11 +3,13 @@ package server.connection;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.MessageFormat;
 
 import org.apache.log4j.Logger;
 
 import assistant.connection.Connection;
 import assistant.connection.ConnectionInfoPack;
+import assistant.i18n.ResourceBundleHandler;
 import server.persistence.PersistenceHandler;
 
 /**
@@ -81,8 +83,10 @@ public class ServerConnection extends Connection {
 				
 			} catch (IOException e) {
 				
+				String message = ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorOccurredWhenWaitingForAConnection");
+				
 				// Failed.
-				this.logger.error("Error occured when waiting for a connection", e);
+				this.logger.error(message, e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -109,8 +113,10 @@ public class ServerConnection extends Connection {
 
 			} catch (IOException e) {
 
+				String message = ResourceBundleHandler.getInstance().getResourceBundle().getString("ErrorOccurredWhenCreatingTheStreamsOrTheSocketIsNotConnected");
+				
 				// Failed.
-				this.logger.error("Error occured when creating the streams or the socket is not connected", e);
+				this.logger.error(message, e);
 
 				// Let this one down but keep on with others.
 				continue;
@@ -153,7 +159,12 @@ public class ServerConnection extends Connection {
 	 */
 	private void establishConnection() throws IOException {
 		this.serverSocket = new ServerSocket(this.connectionInfoPack.getPortNumber());
-		this.logger.warn("Server waiting for Clients on port " + this.connectionInfoPack.getPortNumber());
+		
+		String message = MessageFormat.format(
+				ResourceBundleHandler.getInstance().getResourceBundle().getString("ServerWaitingForClientsOnPort"),
+				this.connectionInfoPack.getPortNumber());
+		
+		this.logger.warn(message);
 	}
 
 	/**
@@ -166,7 +177,8 @@ public class ServerConnection extends Connection {
 	 */
 	private void stopServer() throws IOException, InterruptedException {
 		// bye
-		this.logger.warn("Server will shut down.");
+		String message = ResourceBundleHandler.getInstance().getResourceBundle().getString("ServerWillShutDown");
+		this.logger.warn(message);
 		
 		/*
 		 * 

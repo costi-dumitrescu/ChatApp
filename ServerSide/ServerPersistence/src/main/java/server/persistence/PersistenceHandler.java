@@ -1,6 +1,5 @@
 package server.persistence;
 
-import assistant.message.Messages;
 import assistant.message.rooms.arrivals.NormalMessagesRoom;
 
 /**
@@ -96,7 +95,7 @@ public class PersistenceHandler {
 								// list will have only one message at any time)
 								for (String message : NormalMessagesRoom.getInstance().getMessages()) {
 									// user : message
-									String[] splited = message.split(Messages.SEPARATOR);
+									String[] splited = message.split(" : ");
 									
 									/**********************************************************************************************************/
 									

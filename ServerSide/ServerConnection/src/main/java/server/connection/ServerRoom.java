@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import assistant.handler.HandlerThread;
 import assistant.message.ChatMessage;
-import assistant.message.Messages;
 
 /**
  * {@link ServerRoom} DAO. This singleton holds all clients connected to the server, and
@@ -126,7 +125,7 @@ public class ServerRoom {
 		StringBuilder clients = new StringBuilder();
 		for (ServerHandlerThread client : this.clients) {
 			clients.append(client.getUser());
-			clients.append(Messages.COMMA);
+			clients.append(",");
 		}
 		return clients;
 	}

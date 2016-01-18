@@ -19,10 +19,10 @@ import javax.swing.table.DefaultTableModel;
 import javax.xml.parsers.ParserConfigurationException;
 
 import assistant.connection.Connection;
+import assistant.i18n.ResourceBundleHandler;
 import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
-import assistant.message.Messages;
 import assistant.message.rooms.arrivals.LoginMessagesRoom;
 import assistant.message.rooms.arrivals.LogoutMessagesRoom;
 import assistant.message.rooms.arrivals.NormalMessagesRoom;
@@ -136,7 +136,7 @@ public class ChatWindow extends Window {
 				return false;
 			}
 		};
-		usersModel.addColumn("Users");
+		usersModel.addColumn(ResourceBundleHandler.getInstance().getResourceBundle().getString("Users"));
 		this.usersTable = new JTable(usersModel);
 		this.usersTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		// Align the text in the middle of column.
@@ -192,7 +192,7 @@ public class ChatWindow extends Window {
 		southPanel.add(inputScrollPane, gbcSouth);
 
 		// SEND BUTTON
-		this.sendButton = new JButton("Send");
+		this.sendButton = new JButton(ResourceBundleHandler.getInstance().getResourceBundle().getString("Send"));
 		this.sendButton.addActionListener(new ActionListener() {
 			/**
 			 * @see java.awt.event.ActionListener.actionPerformed(ActionEvent)
@@ -321,7 +321,7 @@ public class ChatWindow extends Window {
 							// A message represents the list of users, separated by comma.
 							for (String message : WhoisinMessagesRoom.getInstance().getMessages()) {
 								ChatWindow.this.removeAllUsers();
-								String[] users = message.split(Messages.COMMA);
+								String[] users = message.split(",");
 								for (String user : users) {
 									ChatWindow.this.appendUser(user);
 								}

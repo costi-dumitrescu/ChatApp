@@ -2,6 +2,7 @@ package connection;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -11,10 +12,10 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.DOMException;
 
 import assistant.handler.HandlerThread;
+import assistant.i18n.ResourceBundleHandler;
 import assistant.message.ChatMessage;
 import assistant.message.MessageHandler;
 import assistant.message.MessageType;
-import assistant.message.Messages;
 import assistant.message.rooms.arrivals.LoginMessagesRoom;
 import assistant.message.rooms.arrivals.LogoutMessagesRoom;
 import assistant.message.rooms.arrivals.NormalMessagesRoom;
@@ -73,20 +74,26 @@ public class ClientHandlerThread extends HandlerThread {
 			@Override
 			public void run() {
 				try {
-					// Loop until the condition is no longer met. 
+					// Loop until the condition is no longer met.
 					while (ClientHandlerThread.this.isConnectionOpened) {
 						ChatMessage chatMessage = (ChatMessage) ClientHandlerThread.this.objectInputStream.readObject();
 						// Ask the {@link MessageHandler} to handle the message.
 						MessageHandler.getInstance().handleMessage(ClientHandlerThread.this, chatMessage);
 					}
 				} catch (DOMException | ClassNotFoundException | IOException | ParserConfigurationException e) {
-					ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : " , e);
+					ClientHandlerThread.this.logger.error(
+							ResourceBundleHandler.getInstance().getResourceBundle().getString("ExceptionInClientThread")
+									+ MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+											.getString("ErrorMessage"), e.getLocalizedMessage()));
 					// The handler thread has terminated.
 					// It has to clear rubbish.
 					try {
 						ClientHandlerThread.this.stopClient();
 					} catch (IOException ioe) {
-						ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", ioe);
+						ClientHandlerThread.this.logger.error(ResourceBundleHandler.getInstance().getResourceBundle()
+								.getString("ExceptionInClientThread")
+								+ MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+										.getString("ErrorMessage"), ioe.getLocalizedMessage()));
 					}
 				}
 			};
@@ -100,16 +107,25 @@ public class ClientHandlerThread extends HandlerThread {
 		    public void run() {
 		    	try {
 					// Send LOGIN message.
-					ChatMessage loginMessage = MessageHandler.getInstance().createMessage(MessageType.LOGIN, ClientHandlerThread.this.user, Messages.USER_IN);
+					ChatMessage loginMessage = MessageHandler.getInstance().createMessage(
+							MessageType.LOGIN,
+							ClientHandlerThread.this.user, 
+							ResourceBundleHandler.getInstance().getResourceBundle().getString("USER_IN"));
 					ClientHandlerThread.this.send(loginMessage);
 				} catch (ParserConfigurationException | IOException e) {
-					ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", e);
+					ClientHandlerThread.this.logger.error(
+							ResourceBundleHandler.getInstance().getResourceBundle().getString("ExceptionInClientThread")
+									+ MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+											.getString("ErrorMessage"), e.getLocalizedMessage()));
 					// The handler thread has terminated.
 					// It has to clear rubbish
 					try {
 						ClientHandlerThread.this.stopClient();
 					} catch (IOException ioe) {
-						ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", ioe);
+						ClientHandlerThread.this.logger.error(ResourceBundleHandler.getInstance().getResourceBundle()
+								.getString("ExceptionInClientThread")
+								+ MessageFormat.format(ResourceBundleHandler.getInstance().getResourceBundle()
+										.getString("ErrorMessage"), ioe.getLocalizedMessage()));
 					}
 				}
 		    }
@@ -146,14 +162,19 @@ public class ClientHandlerThread extends HandlerThread {
 							continue;
 						}
 						// This thread could be released by mistake, so we have to check the size.
-						if(OutgoingMessagesRoom.getInstance().getMessages().size() > 0) {
+						if (OutgoingMessagesRoom.getInstance().getMessages().size() > 0) {
 							// Send all messages to the server.
 							for (ChatMessage chatMessage : OutgoingMessagesRoom.getInstance().getMessages()) {
-								System.err.println(Thread.currentThread().getName() + " in execution SENDING message : " + chatMessage);
 								try {
 									ClientHandlerThread.this.send(chatMessage);
 								} catch (IOException e) {
-									ClientHandlerThread.this.logger.error("Exception in client thread. Error Message : ", e);
+									ClientHandlerThread.this.logger
+											.error(ResourceBundleHandler.getInstance().getResourceBundle()
+													.getString("ExceptionInClientThread")
+													+ MessageFormat.format(
+															ResourceBundleHandler.getInstance().getResourceBundle()
+																	.getString("ErrorMessage"),
+															e.getLocalizedMessage()));
 									continue;
 								}
 							}
@@ -172,7 +193,7 @@ public class ClientHandlerThread extends HandlerThread {
 	public void handleLogin(String user, String message) {
 		// Give a sign a login message has arrived.
 		synchronized (LoginMessagesRoom.getInstance()) {
-			LoginMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LoginMessagesRoom.getInstance().addMessage(user + " : " + message);
 			LoginMessagesRoom.getInstance().notify();
 		}
 	}
@@ -194,7 +215,7 @@ public class ClientHandlerThread extends HandlerThread {
 	public void handleMessage(String user, String message) {
 		// Give a sign a message has arrived.
 		synchronized (NormalMessagesRoom.getInstance()) {
-			NormalMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			NormalMessagesRoom.getInstance().addMessage(user + " : " + message);
 			NormalMessagesRoom.getInstance().notify();
 		}
 	}
@@ -205,7 +226,7 @@ public class ClientHandlerThread extends HandlerThread {
 	public void handleLogout(String user, String message) {
 		// Give a sign a logout message has arrived.
 		synchronized (LogoutMessagesRoom.getInstance()) {
-			LogoutMessagesRoom.getInstance().addMessage(user + Messages.SEPARATOR + message);
+			LogoutMessagesRoom.getInstance().addMessage(user + " : " + message);
 			LogoutMessagesRoom.getInstance().notify();
 		}
 	}
