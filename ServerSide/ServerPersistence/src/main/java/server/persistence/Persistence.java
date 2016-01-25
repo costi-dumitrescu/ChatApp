@@ -82,6 +82,21 @@ public class Persistence {
 		}
 		return INSTANCE;
 	}
+	
+	/**
+	 * Close the connection with the DB.
+	 */
+	public void closeConnection() {
+		/**
+		 * TODO
+		 */
+		try {
+			this.connection.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Register the JDBC driver.
